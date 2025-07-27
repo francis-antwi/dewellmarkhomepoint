@@ -1,0 +1,134 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block title %}Dashboard | CampusHomes{% endblock %}
+
+{% block content %}
+<section class="dashboard-section">
+    <div class="dashboard-container">
+
+        <!-- Sidebar -->
+        <aside class="dashboard-sidebar">
+            <div class="user-profile">
+                <div class="profile-image">
+                    <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}{% static 'images/default-profile.png' %}{% endif %}" alt="{{ user.username }}">
+                </div>
+                <div class="profile-info">
+                    <h3>{{ user.username }}</h3>
+                    <p class="text-muted">{{ user.get_role_display }}</p>
+                </div>
+            </div>
+
+            <nav class="dashboard-nav">
+                <ul>
+                    <li class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <a href="{% url 'dashboard' %}" title="Dashboard Overview"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    </li>
+                    {% if user.role == 'owner' %}
+                    <li class="{% if request.resolver_match.url_name == 'my_properties' %}active{% endif %}">
+                        <a href="{% url 'my_properties' %}" title="View Your Property Listings"><i class="fas fa-home"></i> My Properties</a>
+                    </li>
+                    {% endif %}
+                    <li class="{% if request.resolver_match.url_name == 'my_bookings' %}active{% endif %}">
+                        <a href="{% url 'my_bookings' %}" title="Your Bookings"><i class="fas fa-calendar-check"></i> My Bookings</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'logout' %}" title="Sign Out"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="dashboard-header">
+                <h2>Dashboard Overview</h2>
+                <p>Welcome back, {{ user.first_name|default:user.username }}!</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-cards">
+                {% if user.role == 'owner' %}
+                <div class="stat-card">
+                    <div class="stat-icon bg-primary">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ properties_count|default:"0" }}</h3>
+                        <p>Properties Listed</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon bg-warning">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ bookings_count|default:"0" }}</h3>
+                        <p>Total Bookings</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="stat-card">
+                    <div class="stat-icon bg-danger">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ reviews_count|default:"0" }}</h3>
+                        <p>Your Reviews</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="recent-activity">
+                <h3>Recent Activity</h3>
+                <div class="activity-list">
+                    {% for activity in recent_activity %}
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-{{ activity.icon|default:'info-circle' }}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <p>
+                                {% autoescape off %}
+                                    {{ activity.message }}
+                                {% endautoescape %}
+                            </p>
+
+                            {% if activity.rating %}
+                            <div class="rating" style="color: #f39c12;">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= activity.rating %}
+                                        <i class="fas fa-star"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            {% if activity.comment %}
+                            <p class="review-comment text-muted" style="font-style: italic;">“{{ activity.comment }}”</p>
+                            {% endif %}
+
+                            <span class="activity-time text-muted small">
+                                {{ activity.time|timesince }} ago
+                            </span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="no-activity">No recent activity to show.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </main>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+
+{% endblock %}

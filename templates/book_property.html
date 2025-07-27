@@ -1,0 +1,533 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block content %}
+<div class="booking-container">
+    <div class="booking-header">
+        <h1 class="booking-title">Book Your Stay</h1>
+        <p class="booking-subtitle">Reserve {{ property.title }} for your perfect getaway</p>
+    </div>
+
+    <div class="property-showcase">
+        <div class="property-image-container">
+            {% if property.images.first %}
+                <img src="{{ property.images.first.image.url }}" alt="{{ property.title }}" class="property-image">
+            {% else %}
+                <img src="{% static 'images/default-property.jpg' %}" alt="{{ property.title }}" class="property-image">
+            {% endif %}
+            <div class="image-overlay">
+                <div class="property-badge">Featured</div>
+            </div>
+        </div>
+        
+        <div class="property-details">
+            <h2 class="property-title">{{ property.title }}</h2>
+            <p class="property-description">{{ property.description|truncatewords:30 }}</p>
+            <div class="property-meta">
+                <div class="location-info">
+                    <i class="location-icon">📍</i>
+                    <span>{{ property.location }}</span>
+                </div>
+                <div class="price-info">
+                    <span class="price-amount">₵{{ property.price|floatformat:"0" }}</span>
+                    <span class="price-period">per night</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="booking-form-container">
+        <form method="POST" class="booking-form needs-validation" novalidate>
+            {% csrf_token %}
+            
+            <div class="form-section">
+                <h3 class="section-title">Select Your Dates</h3>
+                <div class="date-inputs">
+                    <div class="date-field">
+                        <label for="start_date" class="form-label">Check-in Date</label>
+                        <div class="input-wrapper">
+                            <input type="text" name="start_date" id="start_date" class="form-control flatpickr date-input" required>
+                            <span class="input-icon">📅</span>
+                        </div>
+                    </div>
+                    <div class="date-field">
+                        <label for="end_date" class="form-label">Check-out Date</label>
+                        <div class="input-wrapper">
+                            <input type="text" name="end_date" id="end_date" class="form-control flatpickr date-input" required>
+                            <span class="input-icon">📅</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title">Special Requests</h3>
+                <div class="textarea-wrapper">
+                    <label for="special_requests" class="form-label">Any special requirements or requests?</label>
+                    <textarea name="special_requests" id="special_requests" class="form-control request-textarea" rows="4" placeholder="Let us know about any special needs, preferences, or questions..."></textarea>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary submit-btn">
+                    <span class="btn-text">Confirm Booking</span>
+                    <span class="btn-icon">✨</span>
+                </button>
+                <a href="{% url 'property_detail' pk=property.id %}" class="btn-secondary back-btn">
+                    <span class="btn-icon">←</span>
+                    <span class="btn-text">Back to Property</span>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} custom-alert">
+                <div class="alert-content">
+                    <span class="alert-icon">
+                        {% if message.tags == 'success' %}✅{% elif message.tags == 'error' %}❌{% else %}ℹ️{% endif %}
+                    </span>
+                    <span class="alert-text">{{ message }}</span>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .booking-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .booking-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        color: white;
+    }
+
+    .booking-title {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(45deg, #fff, #f0f0f0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .booking-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+
+    .property-showcase {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        margin-bottom: 3rem;
+        transition: transform 0.3s ease;
+    }
+
+    .property-showcase:hover {
+        transform: translateY(-5px);
+    }
+
+    .property-image-container {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .property-image {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .property-image:hover {
+        transform: scale(1.05);
+    }
+
+    .image-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.1), transparent);
+    }
+
+    .property-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .property-details {
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .property-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 1rem;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .property-description {
+        color: #666;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+
+    .property-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .location-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #666;
+        font-size: 1rem;
+    }
+
+    .location-icon {
+        font-size: 1.2rem;
+    }
+
+    .price-info {
+        text-align: right;
+    }
+
+    .price-amount {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #667eea;
+    }
+
+    .price-period {
+        color: #666;
+        font-size: 0.9rem;
+        display: block;
+        margin-top: -0.5rem;
+    }
+
+    .booking-form-container {
+        background: white;
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+
+    .form-section {
+        margin-bottom: 2.5rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -0.5rem;
+        left: 0;
+        width: 50px;
+        height: 3px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border-radius: 2px;
+    }
+
+    .date-inputs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .date-field {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .date-input, .request-textarea {
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+    }
+
+    .date-input:focus, .request-textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .input-icon {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.2rem;
+        color: #667eea;
+    }
+
+    .textarea-wrapper {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .request-textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .btn-primary, .btn-secondary {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 50px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+        background: linear-gradient(45deg, #6c757d, #5a6268);
+        color: white;
+        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+    }
+
+    .btn-secondary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-icon {
+        font-size: 1.1rem;
+    }
+
+    .messages-container {
+        margin-top: 2rem;
+    }
+
+    .custom-alert {
+        border: none;
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .alert-content {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .alert-icon {
+        font-size: 1.2rem;
+    }
+
+    .alert-text {
+        flex: 1;
+        font-weight: 500;
+    }
+
+    .alert-success {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        color: white;
+    }
+
+    .alert-error {
+        background: linear-gradient(45deg, #dc3545, #fd7e14);
+        color: white;
+    }
+
+    .alert-info {
+        background: linear-gradient(45deg, #17a2b8, #6f42c1);
+        color: white;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .booking-container {
+            padding: 1rem;
+        }
+
+        .booking-title {
+            font-size: 2rem;
+        }
+
+        .property-showcase {
+            grid-template-columns: 1fr;
+        }
+
+        .property-image {
+            height: 200px;
+        }
+
+        .date-inputs {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .btn-primary, .btn-secondary {
+            justify-content: center;
+        }
+    }
+
+    /* Flatpickr Custom Styling */
+    .flatpickr-calendar {
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .flatpickr-day.selected {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border-color: #667eea;
+    }
+
+    .flatpickr-day:hover {
+        background: rgba(102, 126, 234, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    const disabledRanges = [
+        {% for booking in property.bookings.all %}
+            {% if booking.status == 'confirmed' %}
+                {
+                    from: "{{ booking.start_date|date:'Y-m-d' }}",
+                    to: "{{ booking.end_date|date:'Y-m-d' }}"
+                },
+            {% endif %}
+        {% endfor %}
+    ];
+
+    flatpickr(".flatpickr", {
+        dateFormat: "Y-m-d",
+        minDate: "today",
+        disable: disabledRanges,
+        theme: "material_blue"
+    });
+
+    // Add smooth scrolling and form validation feedback
+    document.querySelector('.booking-form').addEventListener('submit', function(e) {
+        const form = this;
+        if (!form.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Add shake animation to invalid fields
+            const invalidFields = form.querySelectorAll(':invalid');
+            invalidFields.forEach(field => {
+                field.style.animation = 'shake 0.5s';
+                setTimeout(() => {
+                    field.style.animation = '';
+                }, 500);
+            });
+        }
+        form.classList.add('was-validated');
+    });
+
+    // Add keyframes for shake animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+{% endblock %}

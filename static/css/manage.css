@@ -1,0 +1,703 @@
+/* Property Management Form Styles */
+
+/* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+/* Main Section */
+.manage-property-section {
+    padding: 2rem 0;
+    min-height: 100vh;
+}
+
+.manage-property-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* Section Header */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 1.5rem 2rem;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.section-header h2 {
+    font-size: 1.5rem;
+    color: white;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.back-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Property Form */
+.property-form {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+/* Form Sections */
+.form-section {
+    padding: 2rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.form-section:last-child {
+    border-bottom: none;
+}
+
+.form-section h3 {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #007bff;
+    position: relative;
+}
+
+.form-section h3::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 50px;
+    height: 2px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+/* Form Rows and Groups */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 0.75rem 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* Form Check */
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+}
+
+.form-check input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #007bff;
+}
+
+.form-check label {
+    font-weight: 500;
+    cursor: pointer;
+    color: #495057;
+}
+
+/* Amenities Grid */
+.amenities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.amenity-checkbox {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.amenity-checkbox:hover {
+    background: #e9ecef;
+    border-color: #007bff;
+}
+
+.amenity-checkbox input[type="checkbox"] {
+    display: none;
+}
+
+.amenity-checkbox input[type="checkbox"]:checked + label {
+    color: #007bff;
+}
+
+.amenity-checkbox input[type="checkbox"]:checked ~ .amenity-checkbox {
+    background: #e3f2fd;
+    border-color: #007bff;
+}
+
+.amenity-checkbox label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-weight: 500;
+    color: #495057;
+    transition: color 0.3s ease;
+}
+
+.amenity-checkbox label i {
+    font-size: 1.2rem;
+    color: #6c757d;
+    transition: color 0.3s ease;
+}
+
+.amenity-checkbox input[type="checkbox"]:checked + label i {
+    color: #007bff;
+}
+
+/* Image Upload Section */
+.image-upload-container {
+    margin-top: 1rem;
+}
+
+.upload-instructions {
+    text-align: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 15px;
+    border: 2px dashed #dee2e6;
+    margin-bottom: 2rem;
+}
+
+.upload-instructions p {
+    color: #6c757d;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    text-decoration: none;
+}
+
+.upload-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 123, 255, 0.4);
+}
+
+.upload-btn i {
+    font-size: 1.2rem;
+}
+
+/* Image Preview */
+.image-preview-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.image-preview {
+    position: relative;
+    border-radius: 15px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.image-preview:hover {
+    transform: translateY(-5px);
+}
+
+.image-preview img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+
+.image-actions {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.image-preview:hover .image-actions {
+    opacity: 1;
+}
+
+.set-primary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: white;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    background: rgba(40, 167, 69, 0.8);
+    border-radius: 20px;
+    font-weight: 600;
+    transition: background 0.3s ease;
+}
+
+.set-primary:hover {
+    background: rgba(40, 167, 69, 1);
+}
+
+.set-primary input[type="radio"] {
+    display: none;
+}
+
+.set-primary input[type="radio"]:checked + span {
+    background: #28a745;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+}
+
+.delete-image {
+    background: rgba(220, 53, 69, 0.8);
+    color: white;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-image:hover {
+    background: rgba(220, 53, 69, 1);
+    transform: scale(1.1);
+}
+
+/* Form Actions */
+.form-actions {
+    padding: 2rem;
+    background: #f8f9fa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.save-btn {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 25px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 150px;
+}
+
+.save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+}
+
+.delete-btn {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 25px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 150px;
+    text-align: center;
+}
+
+.delete-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: white;
+    margin: 15% auto;
+    padding: 2rem;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-content h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.modal-content p {
+    color: #6c757d;
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.confirm-btn {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.confirm-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+}
+
+.cancel-btn {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+    color: white;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.cancel-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .section-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .section-header h2 {
+        font-size: 2rem;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .amenities-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .image-preview-container {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .save-btn,
+    .delete-btn {
+        width: 100%;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 20% auto;
+    }
+    
+    .modal-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .confirm-btn,
+    .cancel-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .manage-property-container {
+        padding: 0 0.5rem;
+    }
+    
+    .form-section {
+        padding: 1.5rem;
+    }
+    
+    .section-header {
+        padding: 1rem;
+    }
+    
+    .section-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .image-preview img {
+        height: 120px;
+    }
+    
+    .upload-instructions {
+        padding: 1.5rem;
+    }
+    
+    .form-actions {
+        padding: 1.5rem;
+    }
+}
+
+/* Animation for form sections */
+.form-section {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Focus states for better accessibility */
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #5a6fd8, #6a4190);
+}
+/* Amenities Grid (already good) */
+.amenities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* Amenity Checkbox Container */
+.amenity-checkbox {
+    background: #f8f8f8;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1rem; /* Consistent padding */
+    transition: all 0.3s ease;
+    cursor: pointer; /* Indicate the whole box is clickable */
+    position: relative; /* Crucial: Allows absolute positioning of the invisible input */
+    overflow: hidden; /* Ensures the hidden input doesn't spill out visually */
+}
+
+/* Hover effect for the entire amenity box */
+.amenity-checkbox:hover {
+    background: #e9ecef;
+    border-color: #007bff;
+}
+
+/* ** CRITICAL CHANGE: Visually hide the actual checkbox, but keep it fully interactive and cover the entire box ** */
+.amenity-checkbox input[type="checkbox"] {
+    position: absolute; /* Take it out of the normal document flow */
+    top: 0;
+    left: 0;
+    width: 100%; /* Make it span the entire width of its parent (.amenity-checkbox) */
+    height: 100%; /* Make it span the entire height of its parent */
+    opacity: 0; /* Make it completely invisible */
+    cursor: pointer; /* Ensure the cursor indicates it's clickable */
+    z-index: 2; /* Make sure this invisible input is on top of its label content, ready to capture clicks */
+    margin: 0; /* Remove default browser margins */
+    padding: 0; /* Remove default browser padding */
+}
+
+/* Style for the label's content (icon and text) inside the amenity box */
+.amenity-checkbox label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 500;
+    color: #495057;
+    transition: color 0.3s ease;
+    position: relative; /* Positioned relative to its parent .amenity-checkbox */
+    z-index: 1; /* Ensure the label content is below the invisible checkbox input */
+}
+
+/* Style for the icon within the label */
+.amenity-checkbox label i {
+    font-size: 1.2rem;
+    color: #6c757d;
+    transition: color 0.3s ease;
+}
+
+/* ** NEW CSS CLASS: Styles for when an amenity box is 'checked' ** */
+/* This class will be toggled by JavaScript on the .amenity-checkbox container */
+.amenity-checkbox.is-checked {
+    background: #e3f2fd; /* Light blue background when selected */
+    border-color: #007bff; /* Blue border when selected */
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); /* Optional: add a subtle glow */
+}
+
+/* Style the label and icon when the parent .amenity-checkbox has the 'is-checked' class */
+.amenity-checkbox.is-checked label {
+    color: #007bff; /* Blue text for label when selected */
+}
+
+.amenity-checkbox.is-checked label i {
+    color: #007bff; /* Blue icon when selected */
+}

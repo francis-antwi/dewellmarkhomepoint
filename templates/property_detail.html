@@ -1,0 +1,262 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block content %}
+<style>/* Lightbox Modal Styles */
+.lightbox {
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.lightbox-content {
+    max-width: 90%;
+    max-height: 90%;
+}
+
+.close {
+    position: absolute;
+    top: 40px;
+    right: 60px;
+    color: white;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+}
+</style>
+<section class="property-detail-section">
+    <div class="property-detail-container">
+        <!-- Property Images Gallery -->
+       <!-- Image Gallery -->
+<div class="property-gallery">
+    <div class="main-image">
+        <img src="{% if property.images.first %}{{ property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" 
+             alt="{{ property.title }}" 
+             class="clickable-image">
+    </div>
+    <div class="thumbnail-images">
+        {% for image in property.images.all %}
+        <div class="thumbnail">
+            <img src="{{ image.image.url }}" alt="{{ property.title }}" class="clickable-image">
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Lightbox Modal -->
+<div id="lightboxModal" class="lightbox" style="display:none;">
+    <span class="close" onclick="closeLightbox()">&times;</span>
+    <img class="lightbox-content" id="lightboxImage">
+</div>
+
+        
+        <!-- Property Details -->
+        <div class="property-info">
+            <h1>{{ property.title }}</h1>
+            <p class="location"><i class="fas fa-map-marker-alt"></i> {{ property.location }}</p>
+            
+            <div class="property-highlights">
+                <div class="price">GH₵ {{ property.price }}</div>
+                <div class="type-badge">{{ property.get_property_type_display }}</div>
+                {% if property.is_available %}
+                <div class="availability available">Available</div>
+                {% else %}
+                <div class="availability unavailable">Booked</div>
+                {% endif %}
+            </div>
+            
+            <div class="property-description">
+                <h3>Description</h3>
+                <p>{{ property.description }}</p>
+            </div>
+            
+            {% if property.amenities.all %}
+<div class="property-amenities">
+    <h3>Amenities</h3>
+    <div class="amenities-grid">
+        {% for amenity in property.amenities.all %}
+        <div class="amenity-item">
+            <i class="fas fa-{{ amenity.icon }}"></i>
+            <span>{{ amenity.name }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+            
+            <!-- Booking Form -->
+            {% if property.is_available and not is_owner %}
+            <div class="booking-form">
+                <h3>Book This Property</h3>
+                <form method="POST" action="{% url 'book' property.id %}">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div class="form-group">
+        {{ form.start_date.label_tag }}
+        {{ form.start_date }}
+        {{ form.start_date.errors }}
+    </div>
+
+    <div class="form-group">
+        {{ form.end_date.label_tag }}
+        {{ form.end_date }}
+        {{ form.end_date.errors }}
+    </div>
+
+    <div class="form-group">
+        {{ form.special_requests.label_tag }}
+        {{ form.special_requests }}
+        {{ form.special_requests.errors }}
+    </div>
+
+    <button type="submit" class="book-now-btn">Book Now</button>
+</form>
+
+            </div>
+            {% endif %}
+            
+            {% if is_owner %}
+            <div class="owner-actions">
+                <a href="{% url 'manage_property' property.id %}" class="edit-btn">Edit Property</a>
+                <a href="{% url 'manage_property' property.id %}?delete=true" class="delete-btn">Delete Property</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Property Reviews Section -->
+<section class="property-reviews">
+    <div class="section-header">
+        <h2>Reviews</h2>
+        {% if user.is_authenticated and not is_owner %}
+        <button class="add-review-btn" id="openReviewModal">Add Review</button>
+        {% endif %}
+    </div>
+    
+    <div class="reviews-container">
+        {% for review in property.reviews.all %}
+        <div class="review-card">
+            <div class="review-header">
+                <div class="reviewer-info">
+                    <img src="{% if review.user.profile_picture %}{{ review.user.profile_picture.url }}{% else %}{% static 'images/default-profile.png' %}{% endif %}" alt="{{ review.user.username }}">
+                    <div>
+                        <h4>{{ review.user.username }}</h4>
+                        <div class="rating">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %}
+                                <i class="fas fa-star"></i>
+                                {% else %}
+                                <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="review-date">{{ review.created_at|date:"F j, Y" }}</div>
+            </div>
+            <div class="review-content">
+                <p>{{ review.comment }}</p>
+            </div>
+        </div>
+        {% empty %}
+        <p class="no-reviews">No reviews yet. Be the first to review!</p>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Review Modal -->
+<div id="reviewModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2>Add Your Review</h2>
+        <form method="POST" action="{% url 'add_review' property.id %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Rating</label>
+                <div class="rating-input">
+                    {% for i in "54321" %}
+                    <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}">
+                    <label for="star{{ i }}"><i class="fas fa-star"></i></label>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="comment">Your Review</label>
+                <textarea id="comment" name="comment" required></textarea>
+            </div>
+            <button type="submit" class="submit-review-btn">Submit Review</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Review modal functionality
+    const modal = document.getElementById("reviewModal");
+    const btn = document.getElementById("openReviewModal");
+    const span = document.getElementsByClassName("close-modal")[0];
+
+    if (btn) {
+        btn.onclick = function () {
+            modal.style.display = "block";
+        };
+    }
+
+    if (span) {
+        span.onclick = function () {
+            modal.style.display = "none";
+        };
+    }
+
+    window.onclick = function (event) {
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    };
+
+    // Thumbnail image swap
+    const thumbnails = document.querySelectorAll('.thumbnail img');
+    const mainImage = document.querySelector('.main-image img');
+
+    thumbnails.forEach(thumbnail => {
+        thumbnail.addEventListener('click', () => {
+            mainImage.src = thumbnail.src;
+        });
+    });
+
+    // Lightbox full image
+    const images = document.querySelectorAll('.clickable-image');
+    const lightbox = document.getElementById('lightboxModal');
+    const lightboxImage = document.getElementById('lightboxImage');
+
+    images.forEach(img => {
+        img.addEventListener('click', function () {
+            lightboxImage.src = this.src;
+            lightbox.style.display = 'flex';
+        });
+    });
+
+    window.closeLightbox = function () {
+        lightbox.style.display = 'none';
+    };
+
+    lightbox.addEventListener('click', function (e) {
+        if (e.target === lightbox) closeLightbox();
+    });
+});
+</script>
+{% endblock %}

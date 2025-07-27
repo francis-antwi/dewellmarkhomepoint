@@ -1,0 +1,76 @@
+{% comment %} 
+Reusable booking card partial 
+Required context: booking, type = 'current' | 'past' | 'cancelled' 
+{% endcomment %}
+
+{% load static %}
+
+<div class="booking-card">
+    <div class="booking-image">
+        <img src="{% if booking.booked_property.images.first %}{{ booking.booked_property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" alt="{{ booking.booked_property.title }}">
+    </div>
+
+    <div class="booking-details">
+        <h3><a href="{% url 'property_detail' booking.booked_property.id %}">{{ booking.booked_property.title }}</a></h3>
+        <p class="location"><i class="fas fa-map-marker-alt"></i> {{ booking.booked_property.location }}</p>
+
+        <div class="booking-dates">
+            <div class="date-group">
+                <span>Check-in</span>
+                <p>{{ booking.start_date|date:"M d, Y" }}</p>
+            </div>
+            <div class="date-group">
+                <span>Check-out</span>
+                <p>{{ booking.end_date|date:"M d, Y" }}</p>
+            </div>
+            <div class="date-group">
+                <span>Total</span>
+                <p class="price">GH₵ {{ booking.total_price }}</p>
+            </div>
+        </div>
+
+        {% if request.user == booking.booked_property.owner %}
+        <div class="tenant-info">
+            <p><strong>Tenant:</strong> {{ booking.tenant.get_full_name }}</p>
+            <p><strong>Email:</strong> {{ booking.tenant.email }}</p>
+            {% if booking.tenant.phone_number %}
+            <p><strong>Phone:</strong> {{ booking.tenant.phone_number }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if type == 'current' %}
+        <div class="booking-status">
+            <span class="status-badge {{ booking.status }}">{{ booking.get_status_display }}</span>
+
+            {% if booking.status == 'pending' and request.user == booking.booked_property.owner %}
+                <div class="owner-actions">
+                    <a href="{% url 'confirm_booking' booking.id %}" class="btn btn-success">Confirm</a>
+                    <a href="#" class="btn btn-danger cancel-booking" data-booking-id="{{ booking.id }}">Cancel</a>
+                </div>
+            {% elif booking.status == 'confirmed' and request.user == booking.tenant %}
+                <a href="#" class="cancel-booking" data-booking-id="{{ booking.id }}">Cancel Booking</a>
+            {% endif %}
+        </div>
+
+        {% elif type == 'past' %}
+        <div class="booking-actions">
+            {% if not booking.review %}
+            <a href="{% url 'add_review' booking.booked_property.id %}" class="review-btn">Leave a Review</a>
+            {% endif %}
+            <a href="{% url 'property_detail' booking.booked_property.id %}" class="rebook-btn">Book Again</a>
+        </div>
+
+        {% elif type == 'cancelled' %}
+        <div class="booking-dates">
+            <div class="date-group">
+                <span>Status</span>
+                <p class="status-badge cancelled">Cancelled</p>
+            </div>
+        </div>
+        <div class="booking-actions">
+            <a href="{% url 'property_detail' booking.booked_property.id %}" class="rebook-btn">Book Again</a>
+        </div>
+        {% endif %}
+    </div>
+</div>

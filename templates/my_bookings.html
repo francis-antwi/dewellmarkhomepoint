@@ -1,0 +1,181 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block title %}My Bookings | CampusHomes{% endblock %}
+
+{% block content %}
+
+<section class="my-bookings-section">
+    <div class="section-header">
+        <h2>My Bookings</h2>
+    </div>
+
+    <div class="bookings-tabs">
+        <button class="tab-btn active" data-tab="current">Current Bookings</button>
+        <button class="tab-btn" data-tab="past">Past Bookings</button>
+        <button class="tab-btn" data-tab="cancelled">Cancelled</button>
+    </div>
+
+    <div class="bookings-container">
+        <!-- Current Bookings -->
+        <div class="bookings-tab-content active" id="current-bookings">
+            {% for booking in bookings %}
+            <div class="booking-card">
+                <div class="booking-card-content">
+                    <div class="booking-image">
+                        <img src="{% if booking.booked_property.images.first %}{{ booking.booked_property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" alt="{{ booking.booked_property.title }}">
+                    </div>
+                    <div class="booking-info">
+                        <h3>{{ booking.booked_property.title }}</h3>
+                        <p><strong>Location:</strong> {{ booking.booked_property.location }}</p>
+                        <p><strong>From:</strong> {{ booking.start_date }} &nbsp; <strong>To:</strong> {{ booking.end_date }}</p>
+                        <p><strong>Status:</strong> {{ booking.status|title }}</p>
+                    </div>
+                </div>
+
+                <div class="booking-actions">
+                    {% if user == booking.booked_property.owner %}
+                        <p><strong>Tenant:</strong> {{ booking.tenant.username }} | {{ booking.tenant.email }}</p>
+
+                        {% if booking.status == "pending" %}
+                            <form method="POST" action="{% url 'confirm_booking' booking.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn confirm-btn">Confirm</button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if user == booking.booked_property.owner or user == booking.tenant %}
+                        {% if booking.status != "cancelled" and booking.status != "completed" %}
+                            <button class="btn cancel-booking" data-booking-id="{{ booking.id }}">Cancel</button>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-bookings">
+                <i class="fas fa-calendar-times"></i>
+                <h3>No current bookings</h3>
+                <p>Start by exploring our <a href="{% url 'search' %}">available properties</a>.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Past Bookings -->
+        <div class="bookings-tab-content" id="past-bookings">
+            {% for booking in past_bookings %}
+            <div class="booking-card">
+                <div class="booking-card-content">
+                    <div class="booking-image">
+                        <img src="{% if booking.booked_property.images.first %}{{ booking.booked_property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" alt="{{ booking.booked_property.title }}">
+                    </div>
+                    <div class="booking-info">
+                        <h3>{{ booking.booked_property.title }}</h3>
+                        <p><strong>Location:</strong> {{ booking.booked_property.location }}</p>
+                        <p><strong>From:</strong> {{ booking.start_date }} &nbsp; <strong>To:</strong> {{ booking.end_date }}</p>
+                        <p><strong>Status:</strong> {{ booking.status|title }}</p>
+                    </div>
+                </div>
+
+                {% if user == booking.booked_property.owner %}
+                    <p><strong>Tenant:</strong> {{ booking.tenant.username }} | {{ booking.tenant.email }}</p>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="no-bookings">
+                <i class="fas fa-calendar-times"></i>
+                <h3>No past bookings</h3>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Cancelled Bookings -->
+        <div class="bookings-tab-content" id="cancelled-bookings">
+            {% for booking in cancelled_bookings %}
+            <div class="booking-card">
+                <div class="booking-card-content">
+                    <div class="booking-image">
+                        <img src="{% if booking.booked_property.images.first %}{{ booking.booked_property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" alt="{{ booking.booked_property.title }}">
+                    </div>
+                    <div class="booking-info">
+                        <h3>{{ booking.booked_property.title }}</h3>
+                        <p><strong>Location:</strong> {{ booking.booked_property.location }}</p>
+                        <p><strong>From:</strong> {{ booking.start_date }} &nbsp; <strong>To:</strong> {{ booking.end_date }}</p>
+                        <p><strong>Status:</strong> {{ booking.status|title }}</p>
+                    </div>
+                </div>
+
+                {% if user == booking.booked_property.owner %}
+                    <p><strong>Tenant:</strong> {{ booking.tenant.username }} | {{ booking.tenant.email }}</p>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="no-bookings">
+                <i class="fas fa-calendar-times"></i>
+                <h3>No cancelled bookings</h3>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Cancel Booking Modal -->
+<div id="cancelBookingModal" class="modal">
+    <div class="modal-content">
+        <h3>Cancel Booking</h3>
+        <p>Are you sure you want to cancel this booking?</p>
+        <form id="cancelBookingForm" method="POST" action="">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="cancel_reason">Reason for cancellation</label>
+                <textarea id="cancel_reason" name="cancel_reason" required></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="confirm-btn">Confirm Cancellation</button>
+                <button type="button" id="cancelCancel" class="cancel-btn">Go Back</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const tabBtns = document.querySelectorAll('.tab-btn');
+const tabContents = document.querySelectorAll('.bookings-tab-content');
+
+tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        tabBtns.forEach(b => b.classList.remove('active'));
+        tabContents.forEach(tab => tab.classList.remove('active'));
+        btn.classList.add('active');
+        const tabId = btn.getAttribute('data-tab');
+        document.getElementById(`${tabId}-bookings`).classList.add('active');
+    });
+});
+
+const cancelModal = document.getElementById('cancelBookingModal');
+const cancelButtons = document.querySelectorAll('.cancel-booking');
+const cancelForm = document.getElementById('cancelBookingForm');
+const cancelCancel = document.getElementById('cancelCancel');
+
+cancelButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault();
+        const bookingId = this.getAttribute('data-booking-id');
+        cancelForm.action = `/bookings/${bookingId}/cancel/`;
+        cancelModal.style.display = 'block';
+    });
+});
+
+cancelCancel.addEventListener('click', () => {
+    cancelModal.style.display = 'none';
+});
+
+window.addEventListener('click', (event) => {
+    if (event.target === cancelModal) {
+        cancelModal.style.display = 'none';
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block content %}
+<section class="my-properties-section">
+    <div class="section-header">
+        <h2>My Properties</h2>
+        <a href="{% url 'upload' %}" class="add-property-btn">
+            <i class="fas fa-plus"></i> Add New Property
+        </a>
+    </div>
+    
+    <div class="properties-table">
+        <div class="table-header">
+            <div class="table-row">
+                <div class="table-cell">Property</div>
+                <div class="table-cell">Location</div>
+                <div class="table-cell">Price</div>
+                <div class="table-cell">Status</div>
+                <div class="table-cell">Actions</div>
+            </div>
+        </div>
+        
+        <div class="table-body">
+            {% for property in properties %}
+            <div class="table-row">
+                <div class="table-cell property-info">
+                    <div class="property-image">
+                        <img src="{% if property.images.first %}{{ property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" alt="{{ property.title }}">
+                    </div>
+                    <div class="property-details">
+                        <h4><a href="{% url 'property_detail' property.id %}">{{ property.title }}</a></h4>
+                        <p>{{ property.get_property_type_display }}</p>
+                    </div>
+                </div>
+                <div class="table-cell">
+                    <p>{{ property.location }}</p>
+                </div>
+                <div class="table-cell">
+                    <p class="price">GH₵ {{ property.price }}</p>
+                </div>
+                <div class="table-cell">
+                    <span class="status-badge {% if property.is_available %}available{% else %}booked{% endif %}">
+                        {% if property.is_available %}Available{% else %}Booked{% endif %}
+                    </span>
+                </div>
+                <div class="table-cell actions">
+                    <a href="{% url 'manage_property' property.id %}" class="edit-btn" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'property_detail' property.id %}" class="view-btn" title="View">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    <a href="{% url 'manage_property' property.id %}?delete=true" class="delete-btn" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-properties">
+                <i class="fas fa-home"></i>
+                <h3>You haven't listed any properties yet</h3>
+                <p>Get started by adding your first property listing</p>
+                <a href="{% url 'upload' %}" class="add-property-btn">Add Property</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    {% if properties.paginator.num_pages > 1 %}
+    <div class="pagination">
+        {% if properties.has_previous %}
+        <a href="?page=1" class="page-link">&laquo; First</a>
+        <a href="?page={{ properties.previous_page_number }}" class="page-link">Previous</a>
+        {% endif %}
+        
+        {% for num in properties.paginator.page_range %}
+            {% if properties.number == num %}
+            <span class="current-page">{{ num }}</span>
+            {% elif num > properties.number|add:'-3' and num < properties.number|add:'3' %}
+            <a href="?page={{ num }}" class="page-link">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        
+        {% if properties.has_next %}
+        <a href="?page={{ properties.next_page_number }}" class="page-link">Next</a>
+        <a href="?page={{ properties.paginator.num_pages }}" class="page-link">Last &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="form-container">
+    <h2>Confirm Booking</h2>
+    <form id="book-form">
+      <input type="hidden" name="property_id" id="property_id" />
+      <button type="submit">Confirm Booking</button>
+    </form>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const propertyId = urlParams.get('id');
+    document.getElementById('property_id').value = propertyId;
+
+    document.getElementById('book-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      fetch('http://localhost:8000/api/bookings/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ property: propertyId }),
+        credentials: 'include'
+      })
+      .then(res => res.json())
+      .then(data => alert("Booking successful"))
+      .catch(err => alert("Error: Login first"));
+    });
+  </script>
+</body>
+</html>

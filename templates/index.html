@@ -1,0 +1,387 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Find the best student accommodation in Ghana with Campus Homes - hostels, rooms and apartments near your campus">
+    <title>{% block title %}Campus Homes - Student Accommodation in Ghana{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="{% static 'img/favicon.ico' %}">
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    
+    <!-- Lightbox CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/lightbox2@2.11.4/dist/css/lightbox.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bookings.css' %}">
+    <link rel="stylesheet" href="{% static 'css/search.css' %}">
+    <link rel="stylesheet" href="{% static 'css/detail.css' %}">
+    <link rel="stylesheet" href="{% static 'css/manage.css' %}">
+    <link rel="stylesheet" href="{% static 'css/properties.css' %}">
+    <!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    {% block extra_css %}{% endblock %}
+    <style>
+.property-image-slider {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.property-image-slider .slide {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+
+.property-image-slider .slide.active {
+  display: block;
+}
+
+.property-image-slider .prev,
+.property-image-slider .next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0,0,0,0.5);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  cursor: pointer;
+  z-index: 2;
+  font-size: 18px;
+  border-radius: 4px;
+}
+
+.property-image-slider .prev {
+  left: 10px;
+}
+
+.property-image-slider .next {
+  right: 10px;
+}
+/* Add this to your stylesheet */
+.main-nav {
+  display: flex;
+  justify-content: center;
+}
+
+.main-nav ul {
+  display: flex;
+  gap: 2rem; /* spacing between nav items */
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+
+</style>
+
+</head>
+<body>
+    <!-- Top Notification Bar -->
+    <div class="notification-bar">
+        <p>🏆 Best Student Accommodation Platform in Ghana - 2023 Award Winner</p>
+    </div>
+
+    <!-- Main Header -->
+    <header class="main-header">
+        <div class="header-container container-lg">
+            <!-- Logo -->
+            <div class="logo">
+                <a href="{% url 'index' %}" aria-label="CampusHomes Home">
+                    <img src="{% static 'img/logo.png' %}" alt="CampusHomes Logo" width="80" height="auto">
+                    <span style="font-size: smaller;">Campus Homes</span>
+                </a>
+            </div>
+
+            <!-- Search Area -->
+            <div class="search-area">
+                <form method="GET" action="{% url 'search' %}" class="search-container" role="search">
+                    <div class="search-input">
+                        <i class="fas fa-search" aria-hidden="true"></i>
+                        <input type="text" name="q" placeholder="Search by location, property type..." 
+                               value="{{ request.GET.q }}" aria-label="Search properties">
+                    </div>
+                    <button type="submit" class="search-btn">Search</button>
+                </form>
+            </div>
+
+            <!-- User Actions -->
+            <div class="user-actions">
+                {% if user.is_authenticated and user.role == 'owner' %}
+                    <a href="{% url 'upload' %}" class="post-property" aria-label="List your property">
+                        <i class="fas fa-plus-circle" aria-hidden="true"></i>
+                        <span>List Property</span>
+                    </a>
+                {% endif %}
+                
+                <div class="auth-buttons">
+                    {% if user.is_authenticated %}
+                        <div class="dropdown">
+                            <button class="user-dropdown" aria-expanded="false" aria-label="User menu">
+                                <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}{% static 'images/default-profile.png' %}{% endif %}" 
+                                     alt="{{ user.username }} profile picture" width="32" height="32">
+                                <span>{{ user.username }}</span>
+                                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                            </button>
+                            <div class="dropdown-content">
+                                <a href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt" aria-hidden="true"></i> Dashboard</a>
+                                {% if user.role == 'owner' %}
+                                    <a href="{% url 'my_properties' %}"><i class="fas fa-home" aria-hidden="true"></i> My Properties</a>
+                                {% endif %}
+                                <a href="{% url 'my_bookings' %}"><i class="fas fa-calendar-check" aria-hidden="true"></i> My Bookings</a>
+                                <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> Logout</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="login">Login</a>
+                        <a href="{% url 'register' %}" class="register">Register</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" aria-label="Toggle navigation">
+                <i class="fas fa-bars" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <!-- Main Navigation -->
+       <nav class="main-nav" aria-label="Primary navigation">
+            <ul>
+                <li>
+                    <a href="{% url 'index' %}" class="{% if request.resolver_match.url_name == 'index' %}active{% endif %}">
+                        <i class="fas fa-home" aria-hidden="true"></i> Home
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'search' %}">
+                        <i class="fas fa-search" aria-hidden="true"></i> Find Accommodation
+                    </a>
+                </li>
+                {% if user.is_authenticated and user.role == 'owner' %}
+                <li>
+                    <a href="{% url 'my_properties' %}">
+                        <i class="fas fa-list" aria-hidden="true"></i> My Listings
+                    </a>
+                </li>
+                {% endif %}
+                <li>
+                    <a href="{% url 'my_bookings' %}">
+                        <i class="fas fa-calendar" aria-hidden="true"></i> My Bookings
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav" aria-label="Mobile navigation">
+        <ul>
+            <li><a href="{% url 'index' %}" class="active"><i class="fas fa-home" aria-hidden="true"></i> Home</a></li>
+            <li><a href="{% url 'search' %}"><i class="fas fa-search" aria-hidden="true"></i> Find</a></li>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt" aria-hidden="true"></i> Dashboard</a></li>
+                <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> Logout</a></li>
+            {% else %}
+                <li><a href="{% url 'login' %}"><i class="fas fa-sign-in-alt" aria-hidden="true"></i> Login</a></li>
+                <li><a href="{% url 'register' %}"><i class="fas fa-user-plus" aria-hidden="true"></i> Register</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}
+        <!-- Hero Section -->
+        <section class="hero" aria-labelledby="hero-heading">
+            <div class="hero-content container">
+                <h1 id="hero-heading">Find Your Perfect Student Accommodation</h1>
+                <p>Affordable hostels, rooms and apartments near your campus</p>
+                
+                <form method="GET" action="{% url 'search' %}" class="search-filters">
+                    <div class="filter-group">
+                        <label for="property_type" class="visually-hidden">Property Type</label>
+                        <select class="filter-select" name="property_type" id="property_type">
+                            <option value="">All Types</option>
+                            <option value="hostel" {% if request.GET.property_type == 'hostel' %}selected{% endif %}>Hostel</option>
+                            <option value="room" {% if request.GET.property_type == 'room' %}selected{% endif %}>Room</option>
+                            <option value="house" {% if request.GET.property_type == 'house' %}selected{% endif %}>House</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="location" class="visually-hidden">Location</label>
+                        <select class="filter-select" name="location" id="location">
+                            <option value="">All Locations</option>
+                            <option value="Accra" {% if request.GET.location == 'Accra' %}selected{% endif %}>Accra</option>
+                            <option value="Kumasi" {% if request.GET.location == 'Kumasi' %}selected{% endif %}>Kumasi</option>
+                            <option value="Legon" {% if request.GET.location == 'Legon' %}selected{% endif %}>Legon</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="price_range" class="visually-hidden">Price Range</label>
+                        <select class="filter-select" name="price_range" id="price_range">
+                            <option value="">Any Price</option>
+                            <option value="0-500" {% if request.GET.price_range == '0-500' %}selected{% endif %}>Under ₵500</option>
+                            <option value="500-1000" {% if request.GET.price_range == '500-1000' %}selected{% endif %}>₵500 - ₵1000</option>
+                            <option value="1000+" {% if request.GET.price_range == '1000+' %}selected{% endif %}>Over ₵1000</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="search-btn">Search Properties</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Featured Properties Section -->
+        <section class="featured-properties" aria-labelledby="featured-properties-heading">
+            <div class="container">
+                <div class="section-header">
+                    <h2 id="featured-properties-heading">Featured Accommodations</h2>
+                    <a href="{% url 'search' %}" class="view-all">View All <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                </div>
+                
+                <div class="properties-grid">
+                    {% for property in featured %}
+                    <div class="property-card">
+                        <div class="property-image-slider" id="slider-{{ property.id }}">
+                                <img src="{% if property.images.first %}{{ property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" 
+                                    alt="{{ property.title }}" 
+                                    class="slide active" 
+                                    loading="lazy">
+
+                                {% for image in property.images.all|slice:"1:" %}
+                                    <img src="{{ image.image.url }}" 
+                                        alt="{{ property.title }}" 
+                                        class="slide" 
+                                        loading="lazy">
+                                {% endfor %}
+
+                                {% if property.images.all|length > 1 %}
+                                <button class="prev" onclick="prevSlide('slider-{{ property.id }}')">&#10094;</button>
+                                <button class="next" onclick="nextSlide('slider-{{ property.id }}')">&#10095;</button>
+                                {% endif %}
+
+                                <div class="property-price">₵{{ property.price|floatformat:"0" }}{% if property.property_type == 'room' %}/month{% endif %}</div>
+                                </div>
+
+                        <div class="property-details">
+                            <h3><a href="{% url 'property_detail' property.id %}">{{ property.title }}</a></h3>
+                            <div class="location">
+                                <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                                <span>{{ property.location }}</span>
+                            </div>
+                            <div class="property-features">
+                                <span><i class="fas fa-home" aria-hidden="true"></i> {{ property.get_property_type_display }}</span>
+                                {% if property.property_type != 'land' %}
+                                <span><i class="fas fa-bed" aria-hidden="true"></i> {{ property.bedrooms }} Bed{{ property.bedrooms|pluralize }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="property-footer">
+                                <div class="agent-info">
+                                    <img src="{% if property.owner.profile_picture %}{{ property.owner.profile_picture.url }}{% else %}{% static 'images/default-profile.png' %}{% endif %}" 
+                                         alt="{{ property.owner.username }}" width="32" height="32" loading="lazy">
+                                    <span>{{ property.owner.username }}</span>
+                                </div>
+                                <div class="property-date">
+                                    <i class="fas fa-clock" aria-hidden="true"></i>
+                                    <span>{{ property.created_at|timesince }} ago</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="no-properties">
+                        <p>No featured properties available at the moment.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <!-- Call to Action Section -->
+        <section class="cta-section" aria-labelledby="cta-heading">
+            <div class="container">
+                <div class="cta-content">
+                    {% if user.is_authenticated and user.role == 'owner' %}
+                        <h2 id="cta-heading">Have a property to rent?</h2>
+                        <p>List your property with us and reach thousands of students</p>
+                        <div class="cta-buttons">
+                            <a href="{% url 'upload' %}" class="cta-btn primary">List Property Now</a>
+                        </div>
+                    {% else %}
+                        <h2 id="cta-heading">Looking for accommodation?</h2>
+                        <p>Find the perfect place near your campus</p>
+                        <div class="cta-buttons">
+                            <a href="{% url 'search' %}" class="cta-btn primary">Browse Properties</a>
+                            {% if not user.is_authenticated %}
+                            <a href="{% url 'register' %}" class="cta-btn secondary">Register Now</a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>&copy; {% now "Y" %} CampusHomes Ghana. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    
+    <!-- Lightbox JS -->
+    <script src="https://cdn.jsdelivr.net/npm/lightbox2@2.11.4/dist/js/lightbox-plus-jquery.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'js/script.js' %}"></script>
+    <script>
+function nextSlide(id) {
+    const slider = document.getElementById(id);
+    const slides = slider.querySelectorAll(".slide");
+    let current = [...slides].findIndex(slide => slide.classList.contains("active"));
+    slides[current].classList.remove("active");
+    let next = (current + 1) % slides.length;
+    slides[next].classList.add("active");
+}
+
+function prevSlide(id) {
+    const slider = document.getElementById(id);
+    const slides = slider.querySelectorAll(".slide");
+    let current = [...slides].findIndex(slide => slide.classList.contains("active"));
+    slides[current].classList.remove("active");
+    let prev = (current - 1 + slides.length) % slides.length;
+    slides[prev].classList.add("active");
+}
+</script>
+
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

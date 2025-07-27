@@ -1,0 +1,64 @@
+{% extends 'extends.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header><h2>Upload Property</h2></header>
+  <div class="form-container">
+    <form id="property-form" enctype="multipart/form-data">
+      <input type="text" id="title" placeholder="Title" required /><br />
+      <textarea id="description" placeholder="Description" required></textarea><br />
+      <input type="number" id="price" placeholder="Price" required /><br />
+      <input type="text" id="location" placeholder="Location" required /><br />
+      <select id="property_type">
+        <option value="hostel">Hostel</option>
+        <option value="room">Room</option>
+        <option value="house">House</option>
+        <option value="land">Land</option>
+      </select><br />
+      <input type="file" id="image" accept="image/*" /><br />
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("access");
+
+    document.getElementById("property-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("title", document.getElementById("title").value);
+      formData.append("description", document.getElementById("description").value);
+      formData.append("price", document.getElementById("price").value);
+      formData.append("location", document.getElementById("location").value);
+      formData.append("property_type", document.getElementById("property_type").value);
+      formData.append("is_available", "true");
+
+      const imageInput = document.getElementById("image");
+      if (imageInput.files.length > 0) {
+        formData.append("image", imageInput.files[0]);
+      }
+
+      fetch("http://localhost:8000/api/properties/", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + token
+        },
+        body: formData
+      })
+      .then(res => {
+        if (res.ok) {
+          alert("Property uploaded with image!");
+          window.location.href = "dashboard.html";
+        } else {
+          alert("Upload failed. Check login or file size.");
+        }
+      });
+    });
+  </script>
+</body>
+</html>

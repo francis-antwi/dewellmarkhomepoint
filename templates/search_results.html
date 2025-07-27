@@ -1,0 +1,134 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block content %}
+<section class="search-results-section">
+    <div class="search-container">
+        <div class="search-sidebar">
+            <h3>Filter Results</h3>
+            <form method="GET" action="{% url 'search' %}">
+                <input type="hidden" name="q" value="{{ request.GET.q }}">
+                
+                <div class="filter-group">
+                    <h4>Property Type</h4>
+                    <select name="property_type" class="filter-select">
+                        <option value="">All Types</option>
+                        {% for value, display in property_types %}
+                        <option value="{{ value }}" {% if request.GET.property_type == value %}selected{% endif %}>{{ display }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <h4>Location</h4>
+                    <select name="location" class="filter-select">
+                        <option value="">All Locations</option>
+                        {% for location in locations %}
+                        <option value="{{ location }}" {% if request.GET.location == location %}selected{% endif %}>{{ location }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <h4>Price Range</h4>
+                    <div class="price-range">
+                        <input type="number" name="min_price" placeholder="Min" value="{{ request.GET.min_price }}">
+                        <span>to</span>
+                        <input type="number" name="max_price" placeholder="Max" value="{{ request.GET.max_price }}">
+                    </div>
+                </div>
+                
+                <button type="submit" class="apply-filters-btn">Apply Filters</button>
+                <a href="{% url 'search' %}" class="reset-filters">Reset All</a>
+            </form>
+        </div>
+        
+        <div class="search-main">
+            <div class="search-header">
+                <h2>Search Results</h2>
+                <div class="results-count">{{ properties.paginator.count }} properties found</div>
+                <div class="sort-options">
+                    <span>Sort by:</span>
+                    <select id="sortSelect">
+                        <option value="?sort=price">Price: Low to High</option>
+                        <option value="?sort=-price">Price: High to Low</option>
+                        <option value="?sort=-created_at">Newest First</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="properties-list">
+                {% for property in properties %}
+                <div class="property-item">
+                    <div class="property-image">
+                        <img src="{% if property.images.first %}{{ property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" alt="{{ property.title }}">
+                        <div class="property-price">GH₵ {{ property.price }}</div>
+                    </div>
+                    <div class="property-details">
+                        <h3><a href="{% url 'property_detail' property.id %}">{{ property.title }}</a></h3>
+                        <p class="location"><i class="fas fa-map-marker-alt"></i> {{ property.location }}</p>
+                        <p class="description">{{ property.description|truncatewords:20 }}</p>
+                        <div class="property-meta">
+                            <span><i class="fas fa-home"></i> {{ property.get_property_type_display }}</span>
+                            <span><i class="fas fa-calendar-alt"></i> {{ property.created_at|date:"M d, Y" }}</span>
+                        </div>
+                        <a href="{% url 'property_detail' property.id %}" class="view-details-btn">View Details</a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="no-results">
+                    <i class="fas fa-search"></i>
+                    <h3>No properties found matching your criteria</h3>
+                    <p>Try adjusting your search filters or <a href="{% url 'search' %}">reset all filters</a></p>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if properties.paginator.num_pages > 1 %}
+            <div class="pagination">
+                {% if properties.has_previous %}
+                <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">&laquo; First</a>
+                <a href="?page={{ properties.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">Previous</a>
+                {% endif %}
+                
+                {% for num in properties.paginator.page_range %}
+                    {% if properties.number == num %}
+                    <span class="current-page">{{ num }}</span>
+                    {% elif num > properties.number|add:'-3' and num < properties.number|add:'3' %}
+                    <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if properties.has_next %}
+                <a href="?page={{ properties.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">Next</a>
+                <a href="?page={{ properties.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">Last &raquo;</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Sort functionality
+document.getElementById('sortSelect').addEventListener('change', function() {
+    window.location.href = window.location.pathname + this.value;
+});
+
+// Set the selected sort option
+const urlParams = new URLSearchParams(window.location.search);
+const sortParam = urlParams.get('sort');
+if (sortParam) {
+    const sortSelect = document.getElementById('sortSelect');
+    for (let i = 0; i < sortSelect.options.length; i++) {
+        if (sortSelect.options[i].value.includes(sortParam)) {
+            sortSelect.selectedIndex = i;
+            break;
+        }
+    }
+}
+</script>
+{% endblock %}
