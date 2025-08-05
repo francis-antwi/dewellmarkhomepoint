@@ -15,7 +15,7 @@ from .serializers import (
     PropertyImageSerializer
 )
 from .utils import initialize_paystack_transaction
-
+from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 import requests
 from django.conf import settings
@@ -36,6 +36,10 @@ import json
 import hmac
 import hashlib
 import logging
+from django.shortcuts import render
+from django.core.paginator import Paginator
+from django.db.models import Q, Min, Max
+from .models import Property
 
 
 # ============================
@@ -298,23 +302,72 @@ def my_properties_view(request):
     return render(request, 'my_properties.html', {'properties': properties})
 
 
+
 def search_view(request):
     query = request.GET.get('q', '')
-    property_type = request.GET.get('type', '')
-    min_price = request.GET.get('min_price', '')
-    max_price = request.GET.get('max_price', '')
+    property_type = request.GET.get('property_type', '')
+    location = request.GET.get('location', '')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    sort_by = request.GET.get('sort', '')
+
+    # Base queryset
     properties = Property.objects.filter(is_available=True)
+
+    # Search keyword
     if query:
-        properties = properties.filter(models.Q(title__icontains=query) | models.Q(location__icontains=query) | models.Q(description__icontains=query))
+        properties = properties.filter(
+            Q(title__icontains=query) |
+            Q(description__icontains=query) |
+            Q(location__icontains=query)
+        )
+
+    # Filter by property type
     if property_type:
         properties = properties.filter(property_type=property_type)
-    if min_price:
-        properties = properties.filter(price__gte=min_price)
-    if max_price:
-        properties = properties.filter(price__lte=max_price)
-    return render(request, 'search_results.html', {'properties': properties, 'query': query, 'search_params': request.GET})
 
-from django.views.decorators.http import require_POST
+    # Filter by location
+    if location:
+        properties = properties.filter(location__iexact=location)
+
+    # Filter by price range
+    if min_price:
+        try:
+            properties = properties.filter(price__gte=float(min_price))
+        except ValueError:
+            pass
+
+    if max_price:
+        try:
+            properties = properties.filter(price__lte=float(max_price))
+        except ValueError:
+            pass
+
+    # Sorting
+    if sort_by in ['price', '-price', 'created_at', '-created_at']:
+        properties = properties.order_by(sort_by)
+    else:
+        properties = properties.order_by('-created_at')
+
+    # Pagination (10 per page)
+    paginator = Paginator(properties, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Dynamic filter options
+    property_types = Property.PROPERTY_TYPE_CHOICES
+    locations = Property.objects.values_list('location', flat=True).distinct()
+    price_range = Property.objects.aggregate(min_price=Min('price'), max_price=Max('price'))
+
+    context = {
+        'properties': page_obj,
+        'query': query,
+        'property_types': property_types,
+        'locations': locations,
+        'price_range': price_range,
+        'search_params': request.GET,  # for pre-filling form inputs
+    }
+    return render(request, 'search_results.html', context)
 
 
 @login_required
@@ -406,6 +459,7 @@ def book_view(request, pk):
         'booked_dates': [],
     })
 
+# Fixed booking_confirmation_view and related functions
 
 @login_required
 def booking_confirmation_view(request, booking_id):
@@ -425,44 +479,61 @@ def booking_confirmation_view(request, booking_id):
             receipt = request.FILES.get('receipt')
             amount = booking.booked_property.price
 
-            # Simulate calling external API based on selected method
+            # Handle different payment methods
             if payment_method == 'mobile_money':
                 success, txn_id = process_mobile_money_payment(request.user, amount)
+                if success:
+                    Payment.objects.create(
+                        booking=booking,
+                        amount=amount,
+                        payment_method=payment_method,
+                        transaction_id=txn_id,
+                        is_successful=True,
+                        receipt=receipt
+                    )
+                    # AUTO-CONFIRM BOOKING
+                    booking.status = 'confirmed'
+                    booking.save()
+                    messages.success(request, 'Payment successful! Booking confirmed.')
+                    return redirect('my_bookings')
+                else:
+                    messages.error(request, 'Mobile money payment failed. Try another method.')
+                    
             elif payment_method == 'bank_transfer':
                 success, txn_id = process_bank_transfer(request.user, amount)
+                if success:
+                    Payment.objects.create(
+                        booking=booking,
+                        amount=amount,
+                        payment_method=payment_method,
+                        transaction_id=txn_id,
+                        is_successful=True,
+                        receipt=receipt
+                    )
+                    # AUTO-CONFIRM BOOKING
+                    booking.status = 'confirmed'
+                    booking.save()
+                    messages.success(request, 'Payment successful! Booking confirmed.')
+                    return redirect('my_bookings')
+                else:
+                    messages.error(request, 'Bank transfer payment failed. Try another method.')
+                    
             elif payment_method == 'credit_card':
                 reference = f'BOOKING-{uuid.uuid4().hex[:10].upper()}'
                 result = initialize_paystack_transaction(request.user.email, amount, reference)
-
-            if result.get("status") is True:
-                Payment.objects.create(
-                    booking=booking,
-                    amount=amount,
-                    payment_method='credit_card',
-                    transaction_id=reference,
-                    is_successful=False  # Will update after Paystack callback
-                )
-                return redirect(result["data"]["authorization_url"])
-            else:
-                messages.error(request, "Failed to initialize Paystack transaction.")
-                return redirect('booking_confirmation', booking_id=booking.id)
-
-            if success:
-                Payment.objects.create(
-                    booking=booking,
-                    amount=amount,
-                    payment_method=payment_method,
-                    transaction_id=txn_id,
-                    is_successful=True,
-                    receipt=receipt
-                )
-                booking.status = 'confirmed'
-                booking.save()
-
-                messages.success(request, 'Payment successful! Booking confirmed.')
-                return redirect('my_bookings')
-            else:
-                messages.error(request, 'Payment failed. Try another method.')
+                
+                if result.get("status") is True:
+                    # Create payment record (will be updated via webhook/verification)
+                    Payment.objects.create(
+                        booking=booking,
+                        amount=amount,
+                        payment_method='credit_card',
+                        transaction_id=reference,
+                        is_successful=False  # Will update after Paystack callback
+                    )
+                    return redirect(result["data"]["authorization_url"])
+                else:
+                    messages.error(request, "Failed to initialize Paystack transaction.")
     else:
         form = PaymentForm(initial={'amount': booking.booked_property.price})
 
@@ -494,12 +565,19 @@ def paystack_verify_view(request, reference):
             if payment.is_successful:
                 messages.info(request, "This payment was already verified.")
             else:
+                # Update payment status
                 payment.is_successful = True
                 payment.save()
 
+                # AUTO-CONFIRM BOOKING
                 booking = payment.booking
                 booking.status = 'confirmed'
                 booking.save()
+
+                # Optional: Mark property as unavailable for the booking period
+                # This depends on your business logic
+                # booking.booked_property.is_available = False
+                # booking.booked_property.save()
 
                 messages.success(request, "Payment verified and booking confirmed!")
         except Payment.DoesNotExist:
@@ -509,7 +587,6 @@ def paystack_verify_view(request, reference):
 
     return redirect('my_bookings')
 
-logger = logging.getLogger(__name__)
 
 @csrf_exempt
 def paystack_webhook_view(request):
@@ -525,27 +602,402 @@ def paystack_webhook_view(request):
     ).hexdigest()
 
     if signature != computed_signature:
+        logger.warning("Invalid webhook signature")
         return HttpResponseBadRequest("Invalid signature")
 
-    payload = json.loads(body)
-    event = payload.get('event')
-    data = payload.get('data', {})
+    try:
+        payload = json.loads(body)
+        event = payload.get('event')
+        data = payload.get('data', {})
 
-    if event == 'charge.success':
-        reference = data.get('reference')
+        if event == 'charge.success':
+            reference = data.get('reference')
 
-        try:
-            payment = Payment.objects.get(transaction_id=reference)
-            if not payment.is_successful:
-                payment.is_successful = True
-                payment.save()
+            try:
+                payment = Payment.objects.get(transaction_id=reference)
+                if not payment.is_successful:
+                    # Update payment status
+                    payment.is_successful = True
+                    payment.save()
 
-                booking = payment.booking
-                booking.status = 'confirmed'
-                booking.save()
+                    # AUTO-CONFIRM BOOKING
+                    booking = payment.booking
+                    booking.status = 'confirmed'
+                    booking.save()
 
-                logger.info(f"Payment verified via webhook: {reference}")
-        except Payment.DoesNotExist:
-            logger.warning(f"Payment with reference {reference} not found.")
+                    # Optional: Update property availability
+                    # booking.booked_property.is_available = False
+                    # booking.booked_property.save()
+
+                    logger.info(f"Payment verified and booking confirmed via webhook: {reference}")
+                else:
+                    logger.info(f"Payment already processed: {reference}")
+            except Payment.DoesNotExist:
+                logger.warning(f"Payment with reference {reference} not found.")
+                
+    except json.JSONDecodeError:
+        logger.error("Invalid JSON in webhook payload")
+        return HttpResponseBadRequest("Invalid JSON")
+    except Exception as e:
+        logger.error(f"Webhook processing error: {e}")
+        return HttpResponseBadRequest("Processing error")
 
     return JsonResponse({'status': 'success'})
+
+
+# Helper function to create missing payment processing functions
+def process_mobile_money_payment(user, amount):
+    """
+    Simulate mobile money payment processing
+    Replace with actual mobile money API integration
+    """
+    try:
+        # Simulate API call to mobile money provider
+        # In reality, you'd integrate with providers like MTN, Vodafone, etc.
+        
+        # For demo purposes, assume success
+        transaction_id = f'MM-{uuid.uuid4().hex[:10].upper()}'
+        
+        # Here you would make actual API calls to mobile money provider
+        # response = mobile_money_api.charge(user.phone, amount)
+        
+        return True, transaction_id
+    except Exception as e:
+        logger.error(f"Mobile money payment failed: {e}")
+        return False, None
+
+
+def process_bank_transfer(user, amount):
+    """
+    Simulate bank transfer payment processing
+    Replace with actual bank API integration
+    """
+    try:
+        # Simulate bank transfer processing
+        # In reality, you'd integrate with bank APIs
+        
+        transaction_id = f'BT-{uuid.uuid4().hex[:10].upper()}'
+        
+        # Here you would make actual API calls to bank
+        # response = bank_api.process_transfer(user.account, amount)
+        
+        return True, transaction_id
+    except Exception as e:
+        logger.error(f"Bank transfer failed: {e}")
+        return False, None
+
+
+# Additional helper function for manual confirmation (if needed)
+@login_required
+def manual_confirm_booking_view(request, booking_id):
+    """
+    Allow property owners to manually confirm bookings
+    (useful as backup or for special cases)
+    """
+    booking = get_object_or_404(Booking, id=booking_id)
+
+    # Only the property owner can manually confirm
+    if booking.booked_property.owner != request.user:
+        raise PermissionDenied("You do not have permission to confirm this booking.")
+
+    # Only allow confirmation if still pending
+    if booking.status != 'pending':
+        messages.warning(request, f"This booking is already {booking.status}.")
+        return redirect('my_bookings')
+
+    booking.status = 'confirmed'
+    booking.save()
+
+    messages.success(request, 'Booking confirmed manually.')
+    return redirect('my_bookings')
+# Add these missing views to your views.py file
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+import json
+from datetime import datetime, date
+
+# ============================
+# 🔹 MISSING CRITICAL VIEWS
+# ============================
+
+@login_required
+def booking_success_view(request, booking_id):
+    """
+    Success page after payment completion
+    Shows booking confirmation details
+    """
+    booking = get_object_or_404(Booking, id=booking_id, tenant=request.user)
+    
+    # Check if booking was confirmed
+    if booking.status == 'confirmed':
+        messages.success(request, 'Your booking has been confirmed! Payment was successful.')
+    elif booking.status == 'pending':
+        messages.info(request, 'Your booking is pending confirmation. Payment verification in progress.')
+    else:
+        messages.warning(request, f'Booking status: {booking.get_status_display()}')
+    
+    return render(request, 'success.html', {
+        'booking': booking,
+        'payment': getattr(booking, 'payment', None)
+    })
+
+
+@csrf_exempt
+def paystack_callback_view(request):
+    """
+    Handle Paystack payment callback
+    This is where users are redirected after payment
+    """
+    reference = request.GET.get('reference')
+    
+    if not reference:
+        messages.error(request, "Invalid payment reference.")
+        return redirect('my_bookings')
+    
+    # Verify the payment
+    headers = {
+        "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+    }
+    
+    try:
+        response = requests.get(
+            f"https://api.paystack.co/transaction/verify/{reference}", 
+            headers=headers
+        )
+        response.raise_for_status()
+        result = response.json()
+        
+        if result.get("status") and result.get("data", {}).get("status") == "success":
+            try:
+                payment = Payment.objects.get(transaction_id=reference)
+                
+                if not payment.is_successful:
+                    # Mark payment as successful - this triggers auto-confirmation
+                    payment.verify_payment()  # This method also confirms the booking
+                    
+                    messages.success(request, "Payment successful! Your booking has been confirmed.")
+                else:
+                    messages.info(request, "Payment already processed.")
+                    
+                return redirect('booking_success', booking_id=payment.booking.id)
+                
+            except Payment.DoesNotExist:
+                messages.error(request, "Payment record not found.")
+        else:
+            messages.error(request, "Payment verification failed.")
+            
+    except requests.RequestException as e:
+        messages.error(request, f"Error verifying payment: {e}")
+    
+    return redirect('my_bookings')
+
+
+@login_required
+@require_http_methods(["POST"])
+def mobile_money_callback_view(request):
+    """
+    Handle mobile money payment callback
+    """
+    try:
+        data = json.loads(request.body)
+        transaction_id = data.get('transaction_id')
+        status = data.get('status')
+        
+        if transaction_id and status == 'success':
+            try:
+                payment = Payment.objects.get(transaction_id=transaction_id)
+                if not payment.is_successful:
+                    payment.verify_payment()  # Auto-confirms booking
+                    return JsonResponse({'status': 'success', 'message': 'Payment verified'})
+                else:
+                    return JsonResponse({'status': 'info', 'message': 'Already processed'})
+                    
+            except Payment.DoesNotExist:
+                return JsonResponse({'status': 'error', 'message': 'Payment not found'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Payment failed'})
+            
+    except (json.JSONDecodeError, KeyError):
+        return JsonResponse({'status': 'error', 'message': 'Invalid data'})
+
+
+@login_required
+def bank_transfer_verify_view(request, payment_id):
+    """
+    Manual verification for bank transfers
+    Usually done by admin after checking bank statement
+    """
+    payment = get_object_or_404(Payment, id=payment_id)
+    
+    # Only allow property owner or admin to verify
+    if not (request.user.is_staff or payment.booking.booked_property.owner == request.user):
+        raise PermissionDenied("You don't have permission to verify this payment.")
+    
+    if request.method == 'POST' and not payment.is_successful:
+        payment.verify_payment()  # Auto-confirms booking
+        messages.success(request, 'Payment verified and booking confirmed!')
+    
+    return redirect('my_bookings')
+
+
+# ============================
+# 🔹 AJAX UTILITY VIEWS
+# ============================
+
+@require_http_methods(["POST"])
+def check_availability_ajax(request):
+    """
+    AJAX endpoint to check property availability for given dates
+    """
+    try:
+        data = json.loads(request.body)
+        property_id = data.get('property_id')
+        start_date = datetime.strptime(data.get('start_date'), '%Y-%m-%d').date()
+        end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d').date()
+        
+        property_obj = get_object_or_404(Property, id=property_id)
+        
+        # Check for overlapping confirmed bookings
+        is_available = not property_obj.has_confirmed_bookings_for_dates(start_date, end_date)
+        
+        # Get booked dates for calendar display
+        bookings = property_obj.bookings.filter(status='confirmed')
+        booked_dates = []
+        for booking in bookings:
+            current_date = booking.start_date
+            while current_date <= booking.end_date:
+                booked_dates.append(current_date.strftime('%Y-%m-%d'))
+                current_date += timezone.timedelta(days=1)
+        
+        return JsonResponse({
+            'available': is_available,
+            'booked_dates': booked_dates,
+            'message': 'Available' if is_available else 'Property is already booked for these dates'
+        })
+        
+    except (json.JSONDecodeError, ValueError, KeyError):
+        return JsonResponse({'error': 'Invalid data'}, status=400)
+
+
+@require_http_methods(["POST"])
+def calculate_price_ajax(request):
+    """
+    AJAX endpoint to calculate total price for booking
+    """
+    try:
+        data = json.loads(request.body)
+        property_id = data.get('property_id')
+        start_date = datetime.strptime(data.get('start_date'), '%Y-%m-%d').date()
+        end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d').date()
+        
+        property_obj = get_object_or_404(Property, id=property_id)
+        
+        # Create temporary booking object to calculate price
+        temp_booking = Booking(
+            booked_property=property_obj,
+            start_date=start_date,
+            end_date=end_date
+        )
+        
+        total_price = temp_booking.total_price
+        duration = temp_booking.duration
+        
+        return JsonResponse({
+            'total_price': float(total_price),
+            'duration': duration,
+            'price_per_day': float(property_obj.price),
+            'property_type': property_obj.property_type
+        })
+        
+    except (json.JSONDecodeError, ValueError, KeyError):
+        return JsonResponse({'error': 'Invalid data'}, status=400)
+
+
+# ============================
+# 🔹 PROPERTY IMAGE MANAGEMENT
+# ============================
+
+@login_required
+@require_http_methods(["POST"])
+def upload_property_images(request, property_id):
+    """
+    Upload additional images to a property
+    """
+    property_obj = get_object_or_404(Property, id=property_id, owner=request.user)
+    
+    images = request.FILES.getlist('images')
+    uploaded_count = 0
+    
+    for image in images:
+        PropertyImage.objects.create(property_ref=property_obj, image=image)
+        uploaded_count += 1
+    
+    messages.success(request, f'Successfully uploaded {uploaded_count} images.')
+    return redirect('property_detail', pk=property_id)
+
+
+@login_required
+@require_http_methods(["POST"])
+def delete_property_image(request, image_id):
+    """
+    Delete a property image
+    """
+    image = get_object_or_404(PropertyImage, id=image_id)
+    
+    # Check ownership
+    if image.property_ref.owner != request.user:
+        raise PermissionDenied("You don't own this property.")
+    
+    property_id = image.property_ref.id
+    image.delete()
+    
+    messages.success(request, 'Image deleted successfully.')
+    return redirect('property_detail', pk=property_id)
+
+
+@login_required
+@require_http_methods(["POST"])
+def set_primary_image(request, image_id):
+    """
+    Set an image as primary for a property
+    """
+    image = get_object_or_404(PropertyImage, id=image_id)
+    
+    # Check ownership
+    if image.property_ref.owner != request.user:
+        raise PermissionDenied("You don't own this property.")
+    
+    # Set as primary (this automatically unsets other primary images)
+    image.is_primary = True
+    image.save()
+    
+    messages.success(request, 'Primary image updated.')
+    return redirect('property_detail', pk=image.property_ref.id)
+
+
+# ============================
+# 🔹 IMPROVED BOOKING SUBMISSION HANDLER
+# ============================
+
+def handle_booking_submission(request, property_obj, form):
+    """
+    Helper function to handle booking form submission
+    Returns booking object if successful, None if failed
+    """
+    try:
+        booking = form.save(commit=False)
+        booking.booked_property = property_obj
+        booking.tenant = request.user
+        
+        # Validate the booking
+        booking.full_clean()
+        booking.save()
+        
+        return booking
+        
+    except ValidationError as e:
+        for field, errors in e.message_dict.items():
+            for error in errors:
+                messages.error(request, f"{field}: {error}")
+        return None

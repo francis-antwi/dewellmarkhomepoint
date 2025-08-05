@@ -18,11 +18,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='payment',
             name='receipt',
-            field=models.FileField(blank=True, null=True, upload_to='campushomes/payments/'),
+            field=models.FileField(blank=True, null=True, upload_to='dwellmark/payments/'),
         ),
         migrations.AlterField(
             model_name='user',
             name='profile_picture',
-            field=models.ImageField(blank=True, null=True, upload_to='campushomes/users/'),
+            field=models.ImageField(blank=True, null=True, upload_to='dwellmark/users/'),
         ),
     ]

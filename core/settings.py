@@ -95,6 +95,8 @@ TEMPLATES = [
         },
     },
 ]
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'ranchomyc2019@gmail.com' 
 
 # Authentication
 LOGIN_REDIRECT_URL = '/'

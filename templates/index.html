@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Find the best student accommodation in Ghana with Campus Homes - hostels, rooms and apartments near your campus">
-    <title>{% block title %}Campus Homes - Student Accommodation in Ghana{% endblock %}</title>
+    <meta name="description" content="Find the best student accommodation in Ghana with Dwellmark Homepoint - hostels, rooms and apartments near your campus">
+    <title>{% block title %}Dwellmark Homepoint - Student Accommodation in Ghana{% endblock %}</title>
     
     <!-- Favicon -->
     <link rel="icon" href="{% static 'img/favicon.ico' %}">
@@ -90,14 +90,505 @@
   margin: 0;
 }
 
+/* Enhanced Search Styling */
+.search-area {
+  flex: 1;
+  max-width: 600px;
+  margin: 0 auto;
+}
 
+.search-container {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 50px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 6px;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.search-container:hover {
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+  border-color: #007bff;
+}
+
+.search-container:focus-within {
+  box-shadow: 0 6px 25px rgba(0, 123, 255, 0.2);
+  border-color: #007bff;
+}
+
+.search-input-wrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 20px;
+  color: #6c757d;
+  font-size: 16px;
+  z-index: 2;
+  pointer-events: none;
+  transition: color 0.3s ease;
+}
+
+.search-container:focus-within .search-icon {
+  color: #007bff;
+}
+
+.search-input-field {
+  width: 100%;
+  padding: 14px 20px 14px 50px;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  color: #333;
+  outline: none;
+  border-radius: 50px;
+  font-weight: 400;
+  transition: all 0.3s ease;
+}
+
+.search-input-field::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.search-input-field:focus::placeholder {
+  color: #d1d5db;
+}
+
+.search-btn {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 123, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.search-btn:hover {
+  background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+}
+
+.search-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+.search-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.search-btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.search-btn i {
+  font-size: 14px;
+  transition: transform 0.3s ease;
+}
+
+.search-btn:hover i {
+  transform: scale(1.1);
+}
+
+.search-btn span {
+  position: relative;
+  z-index: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .search-container {
+    border-radius: 25px;
+    padding: 4px;
+  }
+  
+  .search-input-field {
+    padding: 12px 16px 12px 40px;
+    font-size: 14px;
+  }
+  
+  .search-icon {
+    left: 16px;
+    font-size: 14px;
+  }
+  
+  .search-btn {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+  
+  .search-btn span {
+    display: none;
+  }
+  
+  .search-btn i {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-area {
+    margin: 0 10px;
+  }
+  
+  .search-container {
+    padding: 3px;
+  }
+  
+  .search-input-field {
+    padding: 10px 14px 10px 35px;
+    font-size: 14px;
+  }
+  
+  .search-icon {
+    left: 14px;
+    font-size: 13px;
+  }
+  
+  .search-btn {
+    padding: 10px 16px;
+    min-width: 50px;
+  }
+}
+
+/* Debug styles */
+.debug-info {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: #f8f9fa;
+  border: 2px solid #007bff;
+  border-radius: 8px;
+  padding: 15px;
+  max-width: 300px;
+  z-index: 9999;
+  font-size: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.debug-info h4 {
+  margin: 0 0 10px 0;
+  color: #007bff;
+  font-size: 14px;
+}
+
+.debug-info p {
+  margin: 5px 0;
+  color: #495057;
+}
+
+.debug-close {
+  position: absolute;
+  top: 5px;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: #6c757d;
+}
+ * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+        }
+
+        .hero {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+            animation: backgroundShift 20s ease-in-out infinite;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { 
+                opacity: 1; 
+                transform: scale(1) rotate(0deg); 
+            }
+            50% { 
+                opacity: 0.8; 
+                transform: scale(1.1) rotate(2deg); 
+            }
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="80" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="70" cy="10" r="1.2" fill="rgba(255,255,255,0.1)"/><circle cx="10" cy="60" r="0.8" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+            animation: float 15s linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) translateX(0px); }
+            100% { transform: translateY(-100px) translateX(-50px); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-content {
+            text-align: center;
+            color: white;
+            animation: fadeInUp 1.2s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(60px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #hero-heading {
+            font-size: clamp(3rem, 6vw, 5.5rem);
+            font-weight: 800;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 50%, #e0f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            animation: titleGlow 4s ease-in-out infinite alternate, slideInLeft 1s ease-out 0.3s both;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        @keyframes titleGlow {
+            from {
+                filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.3));
+            }
+            to {
+                filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.6));
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-80px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .hero-content p {
+            font-size: clamp(1.3rem, 3vw, 2rem);
+            margin-bottom: 0;
+            opacity: 0.95;
+            font-weight: 300;
+            animation: slideInRight 1s ease-out 0.6s both;
+            text-shadow: 0 2px 15px rgba(0, 0, 0, 0.4);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.4;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(80px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Floating elements animation */
+        .hero-content::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            left: -10%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: floatCircle1 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .hero-content::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            right: -15%;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: floatCircle2 10s ease-in-out infinite reverse;
+            pointer-events: none;
+        }
+
+        @keyframes floatCircle1 {
+            0%, 100% { 
+                transform: translate(0, 0) scale(1) rotate(0deg); 
+                opacity: 0.5;
+            }
+            33% { 
+                transform: translate(30px, -40px) scale(1.1) rotate(120deg); 
+                opacity: 0.8;
+            }
+            66% { 
+                transform: translate(-20px, 20px) scale(0.9) rotate(240deg); 
+                opacity: 0.6;
+            }
+        }
+
+        @keyframes floatCircle2 {
+            0%, 100% { 
+                transform: translate(0, 0) scale(1) rotate(0deg); 
+                opacity: 0.4;
+            }
+            50% { 
+                transform: translate(-40px, -30px) scale(1.2) rotate(180deg); 
+                opacity: 0.7;
+            }
+        }
+
+        /* Pulse effect on hover */
+        .hero:hover #hero-heading {
+            animation: titleGlow 2s ease-in-out infinite alternate, pulse 0.6s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .hero-content {
+                padding: 0 1rem;
+            }
+            
+            #hero-heading {
+                margin-bottom: 1.5rem;
+                letter-spacing: -0.01em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 1rem;
+            }
+        }
+
+        /* Add subtle border glow */
+        .hero-content {
+            position: relative;
+        }
+
+        .hero-content:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120%;
+            height: 120%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%);
+            border-radius: 20px;
+            animation: borderGlow 6s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes borderGlow {
+            0%, 100% { 
+                opacity: 0.3; 
+                transform: translate(-50%, -50%) scale(1) rotate(0deg); 
+            }
+            50% { 
+                opacity: 0.6; 
+                transform: translate(-50%, -50%) scale(1.05) rotate(180deg); 
+            }
+        }
 </style>
 
 </head>
 <body>
+    <!-- Debug Info Panel - Hide by default -->
+    <div class="debug-info" id="debugPanel" style="display: none;">
+        <button class="debug-close" onclick="document.getElementById('debugPanel').style.display='none'">&times;</button>
+        <h4>🔍 Search Debug Info</h4>
+        <p><strong>Form Action:</strong> <span id="debug-action">Loading...</span></p>
+        <p><strong>Current URL:</strong> <span id="debug-url">Loading...</span></p>
+        <p><strong>Form Status:</strong> <span id="debug-status">Ready</span></p>
+        <p><strong>Last Search:</strong> <span id="debug-search">None</span></p>
+        <small>Press Ctrl+D to toggle debug panel</small>
+    </div>
+
     <!-- Top Notification Bar -->
     <div class="notification-bar">
-        <p>🏆 Best Student Accommodation Platform in Ghana - 2023 Award Winner</p>
+        <p>🏆 Best Student Accommodation Platform in Ghana</p>
     </div>
 
     <!-- Main Header -->
@@ -105,22 +596,26 @@
         <div class="header-container container-lg">
             <!-- Logo -->
             <div class="logo">
-                <a href="{% url 'index' %}" aria-label="CampusHomes Home">
-                    <img src="{% static 'img/logo.png' %}" alt="CampusHomes Logo" width="80" height="auto">
-                    <span style="font-size: smaller;">Campus Homes</span>
+                <a href="{% url 'index' %}" aria-label="Dwellmark Homepoint">
+                    <!-- <img src="{% static 'img/logo.png' %}" alt="Dwellmark Logo" width="80" height="auto"> -->
+                    <span style="font-size: smaller;">Dwellmark Homepoint</span>
                 </a>
             </div>
 
             <!-- Search Area -->
             <div class="search-area">
-                <form method="GET" action="{% url 'search' %}" class="search-container" role="search">
-                    <div class="search-input">
-                        <i class="fas fa-search" aria-hidden="true"></i>
+                <div class="search-container" role="search">
+                    <div class="search-input-wrapper">
+                        <i class="fas fa-search search-icon" aria-hidden="true"></i>
                         <input type="text" name="q" placeholder="Search by location, property type..." 
-                               value="{{ request.GET.q }}" aria-label="Search properties">
+                               value="{{ request.GET.q }}" aria-label="Search properties" id="searchInput"
+                               class="search-input-field">
                     </div>
-                    <button type="submit" class="search-btn">Search</button>
-                </form>
+                    <button type="button" class="search-btn" id="searchBtn" onclick="performSearch()">
+                        <i class="fas fa-search" aria-hidden="true"></i>
+                        <span>Search</span>
+                    </button>
+                </div>
             </div>
 
             <!-- User Actions -->
@@ -171,11 +666,6 @@
                         <i class="fas fa-home" aria-hidden="true"></i> Home
                     </a>
                 </li>
-                <li>
-                    <a href="{% url 'search' %}">
-                        <i class="fas fa-search" aria-hidden="true"></i> Find Accommodation
-                    </a>
-                </li>
                 {% if user.is_authenticated and user.role == 'owner' %}
                 <li>
                     <a href="{% url 'my_properties' %}">
@@ -216,39 +706,7 @@
                 <h1 id="hero-heading">Find Your Perfect Student Accommodation</h1>
                 <p>Affordable hostels, rooms and apartments near your campus</p>
                 
-                <form method="GET" action="{% url 'search' %}" class="search-filters">
-                    <div class="filter-group">
-                        <label for="property_type" class="visually-hidden">Property Type</label>
-                        <select class="filter-select" name="property_type" id="property_type">
-                            <option value="">All Types</option>
-                            <option value="hostel" {% if request.GET.property_type == 'hostel' %}selected{% endif %}>Hostel</option>
-                            <option value="room" {% if request.GET.property_type == 'room' %}selected{% endif %}>Room</option>
-                            <option value="house" {% if request.GET.property_type == 'house' %}selected{% endif %}>House</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label for="location" class="visually-hidden">Location</label>
-                        <select class="filter-select" name="location" id="location">
-                            <option value="">All Locations</option>
-                            <option value="Accra" {% if request.GET.location == 'Accra' %}selected{% endif %}>Accra</option>
-                            <option value="Kumasi" {% if request.GET.location == 'Kumasi' %}selected{% endif %}>Kumasi</option>
-                            <option value="Legon" {% if request.GET.location == 'Legon' %}selected{% endif %}>Legon</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label for="price_range" class="visually-hidden">Price Range</label>
-                        <select class="filter-select" name="price_range" id="price_range">
-                            <option value="">Any Price</option>
-                            <option value="0-500" {% if request.GET.price_range == '0-500' %}selected{% endif %}>Under ₵500</option>
-                            <option value="500-1000" {% if request.GET.price_range == '500-1000' %}selected{% endif %}>₵500 - ₵1000</option>
-                            <option value="1000+" {% if request.GET.price_range == '1000+' %}selected{% endif %}>Over ₵1000</option>
-                        </select>
-                    </div>
-                    
-                    <button type="submit" class="search-btn">Search Properties</button>
-                </form>
+         
             </div>
         </section>
 
@@ -348,7 +806,7 @@
     <footer class="main-footer">
         <div class="container">
             <div class="footer-bottom">
-                <p>&copy; {% now "Y" %} CampusHomes Ghana. All rights reserved.</p>
+                <p>&copy; {% now "Y" %} Dwellmark Homepoint. All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -379,8 +837,108 @@ function prevSlide(id) {
     let prev = (current - 1 + slides.length) % slides.length;
     slides[prev].classList.add("active");
 }
-</script>
 
+// Search function - bypasses form submission issues
+function performSearch() {
+    console.log('🚀 performSearch() called');
+    
+    const searchInput = document.getElementById('searchInput');
+    const query = searchInput ? searchInput.value.trim() : '';
+    
+    console.log('Search query:', query);
+    document.getElementById('debug-status').textContent = 'Redirecting...';
+    
+    // Build the search URL manually
+    const baseUrl = window.location.origin;
+    const searchUrl = baseUrl + '/search/' + (query ? '?q=' + encodeURIComponent(query) : '');
+    
+    console.log('Redirecting to:', searchUrl);
+    
+    // Direct navigation - most reliable method
+    window.location.href = searchUrl;
+}
+
+// Debug JavaScript - Fixed for unresponsive button
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔧 Debug script loaded');
+    
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    
+    console.log('Input found:', !!searchInput);
+    console.log('Button found:', !!searchBtn);
+    
+    if (!searchInput || !searchBtn) {
+        console.error('❌ Search elements not found!');
+        return;
+    }
+    
+    // Update debug info
+    function updateDebugInfo() {
+        const baseUrl = window.location.origin;
+        document.getElementById('debug-action').textContent = baseUrl + '/search/';
+        document.getElementById('debug-url').textContent = window.location.href;
+    }
+    
+    updateDebugInfo();
+    
+    // Make sure button is clickable
+    searchBtn.style.pointerEvents = 'auto';
+    searchBtn.style.zIndex = '999';
+    searchBtn.style.position = 'relative';
+    
+    // Button click handler
+    searchBtn.addEventListener('click', function(e) {
+        console.log('🖱️ Button clicked via event listener!');
+        document.getElementById('debug-status').textContent = 'Button clicked';
+        performSearch();
+    });
+    
+    // Enter key handler
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            console.log('⌨️ Enter pressed - performing search');
+            document.getElementById('debug-status').textContent = 'Enter pressed';
+            performSearch();
+        }
+    });
+    
+    // Test button visibility and accessibility
+    const buttonRect = searchBtn.getBoundingClientRect();
+    const elementAtPoint = document.elementFromPoint(
+        buttonRect.left + buttonRect.width / 2,
+        buttonRect.top + buttonRect.height / 2
+    );
+    
+    if (elementAtPoint !== searchBtn) {
+        console.warn('⚠️ Button may be blocked by:', elementAtPoint);
+    } else {
+        console.log('✅ Button is accessible');
+    }
+    
+    // Log CSS properties
+    const computedStyle = window.getComputedStyle(searchBtn);
+    console.log('Button CSS:', {
+        pointerEvents: computedStyle.pointerEvents,
+        zIndex: computedStyle.zIndex,
+        display: computedStyle.display,
+        visibility: computedStyle.visibility,
+        cursor: computedStyle.cursor
+    });
+    
+    // Add keyboard shortcut to toggle debug panel
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'd') {
+            e.preventDefault();
+            const debugPanel = document.getElementById('debugPanel');
+            debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+        }
+    });
+    
+    console.log('✅ Search setup complete - try clicking the button or pressing Enter');
+    console.log('💡 Press Ctrl+D to toggle debug panel');
+});
+</script>
     
     {% block extra_js %}{% endblock %}
 </body>

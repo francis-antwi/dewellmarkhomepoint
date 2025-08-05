@@ -7,24 +7,24 @@
             mainNav.style.display = mainNav.style.display === 'block' ? 'none' : 'block';
         });
 
-        // Favorite button functionality
-        const favBtns = document.querySelectorAll('.fav-btn');
-        favBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const icon = btn.querySelector('i');
-                if (icon.classList.contains('far')) {
-                    icon.classList.remove('far');
-                    icon.classList.add('fas');
-                    icon.style.color = '#e53e3e';
-                } else {
-                    icon.classList.remove('fas');
-                    icon.classList.add('far');
-                    icon.style.color = '';
-                }
-            });
-        });
+        // // Favorite button functionality
+        // const favBtns = document.querySelectorAll('.fav-btn');
+        // favBtns.forEach(btn => {
+        //     btn.addEventListener('click', (e) => {
+        //         e.preventDefault();
+        //         e.stopPropagation();
+        //         const icon = btn.querySelector('i');
+        //         if (icon.classList.contains('far')) {
+        //             icon.classList.remove('far');
+        //             icon.classList.add('fas');
+        //             icon.style.color = '#e53e3e';
+        //         } else {
+        //             icon.classList.remove('fas');
+        //             icon.classList.add('far');
+        //             icon.style.color = '';
+        //         }
+        //     });
+        // });
 
         // Property card click handlers
         const propertyCards = document.querySelectorAll('.property-card');
@@ -34,16 +34,6 @@
                     // Navigate to property details page
                     console.log('Navigate to property details');
                 }
-            });
-        });
-
-        // Search functionality
-        const searchForms = document.querySelectorAll('.search-container, .search-filters');
-        searchForms.forEach(form => {
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                console.log('Search submitted');
-                // Add search logic here
             });
         });
 
