@@ -151,13 +151,73 @@ class PropertyImageViewSet(viewsets.ModelViewSet):
 # ============================
 # 🔹 TEMPLATE VIEWS
 # ============================
-
 def index_view(request):
-    properties = Property.objects.filter(is_available=True).order_by('-created_at')[:8]
-    featured = Property.objects.filter(is_available=True).order_by('?')[:3]
-    return render(request, 'index.html', {'properties': properties, 'featured': featured})
-
-
+    # Define property type categories
+    RENTAL_TYPES = ['hostel', 'room', 'house']
+    SALE_TYPES = ['land']
+    
+    CATEGORY_GROUPS = {
+        'rentals': RENTAL_TYPES,
+        'sales': SALE_TYPES,
+        'all': []
+    }
+    
+    # Get the requested property type from URL parameters
+    requested_type = request.GET.get('property_type', '').lower()
+    
+    # Featured properties section
+    featured_rent = Property.objects.filter(
+        is_available=True,
+        property_type__in=RENTAL_TYPES
+    ).select_related('owner').prefetch_related('images').order_by('-created_at')[:8]
+    
+    featured_sale = Property.objects.filter(
+        is_available=True,
+        property_type__in=SALE_TYPES
+    ).select_related('owner').prefetch_related('images').order_by('-created_at')[:8]
+    
+    featured_random = Property.objects.filter(
+        is_available=True
+    ).select_related('owner').prefetch_related('images').order_by('?')[:3]
+    
+    # Property list filtering logic
+    properties = Property.objects.filter(is_available=True)
+    
+    if requested_type in CATEGORY_GROUPS:
+        if requested_type != 'all':
+            properties = properties.filter(property_type__in=CATEGORY_GROUPS[requested_type])
+    elif requested_type:
+        properties = properties.filter(property_type=requested_type)
+    
+    # Display titles
+    display_titles = {
+        'rentals': 'Rental Properties',
+        'sales': 'Properties for Sale',
+        'hostel': 'Hostels',
+        'room': 'Rooms',
+        'house': 'Houses',
+        'land': 'Land Properties',
+        '': 'All Properties'
+    }
+    
+    display_title = display_titles.get(requested_type, f"{requested_type.title()} Properties")
+    
+    return render(request, 'base.html', {
+        # Featured properties
+        'featured_rent': featured_rent,
+        'featured_sale': featured_sale,
+        'random_featured': featured_random,
+        
+        # Property list
+        'properties': properties.order_by('-created_at'),
+        'current_filter': requested_type,
+        'display_title': display_title,
+        'category_groups': CATEGORY_GROUPS,
+        
+        # Constants for templates
+        'rental_types': RENTAL_TYPES,
+        'sale_types': SALE_TYPES
+    })
 def register_view(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST, request.FILES)
@@ -421,7 +481,7 @@ def upload_view(request):
         property.save()
         form.save_m2m()
         return redirect('property_detail', pk=property.id)
-    return render(request, 'upload_property.html', {'form': form})
+    return render(request, 'add_property.html', {'form': form})
 
 @login_required
 def book_view(request, pk):
@@ -1001,3 +1061,53 @@ def handle_booking_submission(request, property_obj, form):
             for error in errors:
                 messages.error(request, f"{field}: {error}")
         return None
+def property_list_view(request):
+    # Define our category groupings
+    CATEGORY_GROUPS = {
+        'rentals': ['hostel', 'room', 'house'],
+        'sales': ['land'],
+        'all': []  # Special case for showing all
+    }
+    
+    # Get the requested property type from URL parameters
+    requested_type = request.GET.get('property_type', '').lower()
+    
+    # Start with base queryset of available properties
+    properties = Property.objects.filter(is_available=True)
+    
+    # Apply filters based on the requested type
+    if requested_type in CATEGORY_GROUPS:
+        if requested_type != 'all':  # 'all' means no filtering
+            properties = properties.filter(property_type__in=CATEGORY_GROUPS[requested_type])
+    elif requested_type:
+        # Filter for specific property type if it's not a group
+        properties = properties.filter(property_type=requested_type)
+    
+    # Get the display title based on filter
+    display_titles = {
+        'rentals': 'Rental Properties',
+        'sales': 'Properties for Sale',
+        'hostel': 'Hostels',
+        'room': 'Rooms',
+        'house': 'Houses',
+        'land': 'Land Properties',
+        '': 'All Properties'
+    }
+    
+    display_title = display_titles.get(requested_type, f"{requested_type.title()} Properties")
+    
+    return render(request, 'property_list.html', {
+        'properties': properties.order_by('-created_at'),
+        'current_filter': requested_type,
+        'display_title': display_title,
+        'category_groups': CATEGORY_GROUPS
+    })
+from django.shortcuts import get_object_or_404, redirect
+
+def delete_property(request, pk):
+    property = get_object_or_404(Property, pk=pk, owner=request.user)  # Changed from user to owner
+    if request.method == 'POST':
+        property.delete()
+        messages.success(request, 'Property deleted successfully.')
+        return redirect('my_properties')
+    return redirect('my_properties')

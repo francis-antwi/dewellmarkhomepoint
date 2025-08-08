@@ -1,4 +1,4 @@
-{% extends 'index.html' %}
+
 {% load static %}
 
 {% block title %}My Bookings | Dwellmark Homepoint{% endblock %}
@@ -6,115 +6,137 @@
 {% block content %}
 
 <section class="my-bookings-section">
-    <div class="section-header">
-        <h2>My Bookings</h2>
-    </div>
+    <div class="container">
+        <div class="section-header">
+            <h2>My Bookings</h2>
+            <p class="section-description">Manage your current, past, and cancelled bookings</p>
+        </div>
 
-    <div class="bookings-tabs">
-        <button class="tab-btn active" data-tab="current">Current Bookings</button>
-        <button class="tab-btn" data-tab="past">Past Bookings</button>
-        <button class="tab-btn" data-tab="cancelled">Cancelled</button>
-    </div>
+        <div class="bookings-tabs">
+            <button class="tab-btn active" data-tab="current">Current Bookings</button>
+            <button class="tab-btn" data-tab="past">Past Bookings</button>
+            <button class="tab-btn" data-tab="cancelled">Cancelled</button>
+        </div>
 
-    <div class="bookings-container">
-        <!-- Current Bookings -->
-        <div class="bookings-tab-content active" id="current-bookings">
-            {% for booking in bookings %}
-            <div class="booking-card">
-                <div class="booking-card-content">
-                    <div class="booking-image">
-                        <img src="{% if booking.booked_property.images.first %}{{ booking.booked_property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" alt="{{ booking.booked_property.title }}">
+        <div class="bookings-container">
+            <!-- Current Bookings -->
+            <div class="bookings-tab-content active" id="current-bookings">
+                {% for booking in bookings %}
+                <div class="booking-card {% if booking.status == 'pending' %}pending-booking{% endif %}">
+                    <div class="booking-card-content">
+                        <div class="booking-image">
+                            <img src="{% if booking.booked_property.images.first %}{{ booking.booked_property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" alt="{{ booking.booked_property.title }}">
+                            <span class="booking-status-badge">{{ booking.status|title }}</span>
+                        </div>
+                        <div class="booking-info">
+                            <h3>{{ booking.booked_property.title }}</h3>
+                            <div class="booking-meta">
+                                <p><i class="fas fa-map-marker-alt"></i> {{ booking.booked_property.location }}</p>
+                                <p><i class="fas fa-calendar-alt"></i> {{ booking.start_date|date:"M d, Y" }} - {{ booking.end_date|date:"M d, Y" }}</p>
+                                <p><i class="fas fa-dollar-sign"></i> GH₵{{ booking.total_price|floatformat:2 }}</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="booking-info">
-                        <h3>{{ booking.booked_property.title }}</h3>
-                        <p><strong>Location:</strong> {{ booking.booked_property.location }}</p>
-                        <p><strong>From:</strong> {{ booking.start_date }} &nbsp; <strong>To:</strong> {{ booking.end_date }}</p>
-                        <p><strong>Status:</strong> {{ booking.status|title }}</p>
+
+                    <div class="booking-actions">
+                        {% if user == booking.booked_property.owner %}
+                            <div class="tenant-info">
+                                <p><strong>Tenant:</strong> {{ booking.tenant.get_full_name|default:booking.tenant.username }} | {{ booking.tenant.email }}</p>
+                            </div>
+
+                            {% if booking.status == "pending" %}
+                                <form method="POST" action="{% url 'confirm_booking' booking.id %}" class="booking-action-form">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success confirm-btn">Confirm Booking</button>
+                                </form>
+                            {% endif %}
+                        {% endif %}
+
+                        {% if user == booking.booked_property.owner or user == booking.tenant %}
+                            {% if booking.status != "cancelled" and booking.status != "completed" %}
+                                <button class="btn btn-danger cancel-booking" data-booking-id="{{ booking.id }}">
+                                    Cancel Booking
+                                </button>
+                            {% endif %}
+                        {% endif %}
                     </div>
                 </div>
+                {% empty %}
+                <div class="no-bookings">
+                    <i class="fas fa-calendar-times"></i>
+                    <h3>No current bookings</h3>
+                    <p>Start by exploring our <a href="{% url 'search' %}" class="text-link">available properties</a>.</p>
+                </div>
+                {% endfor %}
+            </div>
 
-                <div class="booking-actions">
+            <!-- Past Bookings -->
+            <div class="bookings-tab-content" id="past-bookings">
+                {% for booking in past_bookings %}
+                <div class="booking-card">
+                    <div class="booking-card-content">
+                        <div class="booking-image">
+                            <img src="{% if booking.booked_property.images.first %}{{ booking.booked_property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" alt="{{ booking.booked_property.title }}">
+                            <span class="booking-status-badge">{{ booking.status|title }}</span>
+                        </div>
+                        <div class="booking-info">
+                            <h3>{{ booking.booked_property.title }}</h3>
+                            <div class="booking-meta">
+                                <p><i class="fas fa-map-marker-alt"></i> {{ booking.booked_property.location }}</p>
+                                <p><i class="fas fa-calendar-alt"></i> {{ booking.start_date|date:"M d, Y" }} - {{ booking.end_date|date:"M d, Y" }}</p>
+                                <p><i class="fas fa-dollar-sign"></i> ${{ booking.total_price|floatformat:2 }}</p>
+                            </div>
+                        </div>
+                    </div>
+
                     {% if user == booking.booked_property.owner %}
-                        <p><strong>Tenant:</strong> {{ booking.tenant.username }} | {{ booking.tenant.email }}</p>
-
-                        {% if booking.status == "pending" %}
-                            <form method="POST" action="{% url 'confirm_booking' booking.id %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn confirm-btn">Confirm</button>
-                            </form>
-                        {% endif %}
-                    {% endif %}
-
-                    {% if user == booking.booked_property.owner or user == booking.tenant %}
-                        {% if booking.status != "cancelled" and booking.status != "completed" %}
-                            <button class="btn cancel-booking" data-booking-id="{{ booking.id }}">Cancel</button>
-                        {% endif %}
+                        <div class="tenant-info">
+                            <p><strong>Tenant:</strong> {{ booking.tenant.get_full_name|default:booking.tenant.username }} | {{ booking.tenant.email }}</p>
+                        </div>
                     {% endif %}
                 </div>
-            </div>
-            {% empty %}
-            <div class="no-bookings">
-                <i class="fas fa-calendar-times"></i>
-                <h3>No current bookings</h3>
-                <p>Start by exploring our <a href="{% url 'search' %}">available properties</a>.</p>
-            </div>
-            {% endfor %}
-        </div>
-
-        <!-- Past Bookings -->
-        <div class="bookings-tab-content" id="past-bookings">
-            {% for booking in past_bookings %}
-            <div class="booking-card">
-                <div class="booking-card-content">
-                    <div class="booking-image">
-                        <img src="{% if booking.booked_property.images.first %}{{ booking.booked_property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" alt="{{ booking.booked_property.title }}">
-                    </div>
-                    <div class="booking-info">
-                        <h3>{{ booking.booked_property.title }}</h3>
-                        <p><strong>Location:</strong> {{ booking.booked_property.location }}</p>
-                        <p><strong>From:</strong> {{ booking.start_date }} &nbsp; <strong>To:</strong> {{ booking.end_date }}</p>
-                        <p><strong>Status:</strong> {{ booking.status|title }}</p>
-                    </div>
+                {% empty %}
+                <div class="no-bookings">
+                    <i class="fas fa-calendar-times"></i>
+                    <h3>No past bookings</h3>
+                    <p>Your completed bookings will appear here.</p>
                 </div>
-
-                {% if user == booking.booked_property.owner %}
-                    <p><strong>Tenant:</strong> {{ booking.tenant.username }} | {{ booking.tenant.email }}</p>
-                {% endif %}
+                {% endfor %}
             </div>
-            {% empty %}
-            <div class="no-bookings">
-                <i class="fas fa-calendar-times"></i>
-                <h3>No past bookings</h3>
-            </div>
-            {% endfor %}
-        </div>
 
-        <!-- Cancelled Bookings -->
-        <div class="bookings-tab-content" id="cancelled-bookings">
-            {% for booking in cancelled_bookings %}
-            <div class="booking-card">
-                <div class="booking-card-content">
-                    <div class="booking-image">
-                        <img src="{% if booking.booked_property.images.first %}{{ booking.booked_property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" alt="{{ booking.booked_property.title }}">
+            <!-- Cancelled Bookings -->
+            <div class="bookings-tab-content" id="cancelled-bookings">
+                {% for booking in cancelled_bookings %}
+                <div class="booking-card">
+                    <div class="booking-card-content">
+                        <div class="booking-image">
+                            <img src="{% if booking.booked_property.images.first %}{{ booking.booked_property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" alt="{{ booking.booked_property.title }}">
+                            <span class="booking-status-badge">{{ booking.status|title }}</span>
+                        </div>
+                        <div class="booking-info">
+                            <h3>{{ booking.booked_property.title }}</h3>
+                            <div class="booking-meta">
+                                <p><i class="fas fa-map-marker-alt"></i> {{ booking.booked_property.location }}</p>
+                                <p><i class="fas fa-calendar-alt"></i> {{ booking.start_date|date:"M d, Y" }} - {{ booking.end_date|date:"M d, Y" }}</p>
+                                <p><i class="fas fa-dollar-sign"></i> ${{ booking.total_price|floatformat:2 }}</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="booking-info">
-                        <h3>{{ booking.booked_property.title }}</h3>
-                        <p><strong>Location:</strong> {{ booking.booked_property.location }}</p>
-                        <p><strong>From:</strong> {{ booking.start_date }} &nbsp; <strong>To:</strong> {{ booking.end_date }}</p>
-                        <p><strong>Status:</strong> {{ booking.status|title }}</p>
-                    </div>
+
+                    {% if user == booking.booked_property.owner %}
+                        <div class="tenant-info">
+                            <p><strong>Tenant:</strong> {{ booking.tenant.get_full_name|default:booking.tenant.username }} | {{ booking.tenant.email }}</p>
+                        </div>
+                    {% endif %}
                 </div>
-
-                {% if user == booking.booked_property.owner %}
-                    <p><strong>Tenant:</strong> {{ booking.tenant.username }} | {{ booking.tenant.email }}</p>
-                {% endif %}
+                {% empty %}
+                <div class="no-bookings">
+                    <i class="fas fa-calendar-times"></i>
+                    <h3>No cancelled bookings</h3>
+                    <p>Your cancelled bookings will appear here.</p>
+                </div>
+                {% endfor %}
             </div>
-            {% empty %}
-            <div class="no-bookings">
-                <i class="fas fa-calendar-times"></i>
-                <h3>No cancelled bookings</h3>
-            </div>
-            {% endfor %}
         </div>
     </div>
 </section>
@@ -122,60 +144,432 @@
 <!-- Cancel Booking Modal -->
 <div id="cancelBookingModal" class="modal">
     <div class="modal-content">
+        <span class="close-modal">&times;</span>
         <h3>Cancel Booking</h3>
-        <p>Are you sure you want to cancel this booking?</p>
+        <p>Are you sure you want to cancel this booking? This action cannot be undone.</p>
         <form id="cancelBookingForm" method="POST" action="">
             {% csrf_token %}
             <div class="form-group">
-                <label for="cancel_reason">Reason for cancellation</label>
-                <textarea id="cancel_reason" name="cancel_reason" required></textarea>
+                <label for="cancel_reason">Reason for cancellation (required)</label>
+                <textarea id="cancel_reason" name="cancel_reason" rows="4" required placeholder="Please provide a reason for cancellation..."></textarea>
             </div>
             <div class="modal-actions">
-                <button type="submit" class="confirm-btn">Confirm Cancellation</button>
-                <button type="button" id="cancelCancel" class="cancel-btn">Go Back</button>
+                <button type="button" id="cancelCancel" class="btn btn-secondary">Go Back</button>
+                <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
             </div>
         </form>
     </div>
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+.my-bookings-section {
+    padding: 40px 0;
+    background-color: #f9f9f9;
+    min-height: calc(100vh - 120px);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.section-header h2 {
+    font-size: 32px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.section-description {
+    color: #666;
+    font-size: 16px;
+}
+
+.bookings-tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.tab-btn {
+    padding: 12px 24px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    color: #666;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+    color: #2c3e50;
+}
+
+.tab-btn.active:after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #3498db;
+}
+
+.tab-btn:hover:not(.active) {
+    color: #3498db;
+}
+
+.bookings-tab-content {
+    display: none;
+}
+
+.bookings-tab-content.active {
+    display: block;
+}
+
+.booking-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.booking-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.booking-card.pending-booking {
+    border-left: 4px solid #f39c12;
+}
+
+.booking-card-content {
+    display: flex;
+    padding: 20px;
+}
+
+.booking-image {
+    width: 200px;
+    height: 150px;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.booking-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.booking-status-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.booking-info {
+    flex-grow: 1;
+    padding-left: 20px;
+}
+
+.booking-info h3 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+    font-size: 20px;
+}
+
+.booking-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.booking-meta p {
+    margin: 0;
+    color: #555;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+}
+
+.booking-meta i {
+    margin-right: 5px;
+    color: #3498db;
+}
+
+.booking-actions {
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.tenant-info {
+    font-size: 14px;
+    color: #555;
+}
+
+.tenant-info strong {
+    color: #333;
+}
+
+.booking-action-form {
+    margin: 0;
+}
+
+.btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-success {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #27ae60;
+}
+
+.btn-danger {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+}
+
+.btn-secondary {
+    background-color: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #7f8c8d;
+}
+
+.no-bookings {
+    text-align: center;
+    padding: 50px 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.no-bookings i {
+    font-size: 50px;
+    color: #bdc3c7;
+    margin-bottom: 20px;
+}
+
+.no-bookings h3 {
+    color: #7f8c8d;
+    margin-bottom: 10px;
+}
+
+.no-bookings p {
+    color: #95a5a6;
+}
+
+.text-link {
+    color: #3498db;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.text-link:hover {
+    text-decoration: underline;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    overflow: auto;
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 30px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #7f8c8d;
+}
+
+.close-modal:hover {
+    color: #333;
+}
+
+.modal h3 {
+    margin-top: 0;
+    color: #2c3e50;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    min-height: 100px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+@media (max-width: 768px) {
+    .booking-card-content {
+        flex-direction: column;
+    }
+    
+    .booking-image {
+        width: 100%;
+        height: 200px;
+        margin-bottom: 15px;
+    }
+    
+    .booking-info {
+        padding-left: 0;
+    }
+    
+    .booking-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .tab-btn {
+        padding: 10px 15px;
+        font-size: 14px;
+    }
+}
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script>
-const tabBtns = document.querySelectorAll('.tab-btn');
-const tabContents = document.querySelectorAll('.bookings-tab-content');
+document.addEventListener('DOMContentLoaded', function() {
+    // Tab functionality
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.bookings-tab-content');
 
-tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        tabBtns.forEach(b => b.classList.remove('active'));
-        tabContents.forEach(tab => tab.classList.remove('active'));
-        btn.classList.add('active');
-        const tabId = btn.getAttribute('data-tab');
-        document.getElementById(`${tabId}-bookings`).classList.add('active');
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Update active tab button
+            tabBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Update active tab content
+            const tabId = btn.getAttribute('data-tab');
+            tabContents.forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.id === `${tabId}-bookings`) {
+                    tab.classList.add('active');
+                }
+            });
+        });
     });
-});
 
-const cancelModal = document.getElementById('cancelBookingModal');
-const cancelButtons = document.querySelectorAll('.cancel-booking');
-const cancelForm = document.getElementById('cancelBookingForm');
-const cancelCancel = document.getElementById('cancelCancel');
+    // Modal functionality
+    const cancelModal = document.getElementById('cancelBookingModal');
+    const cancelButtons = document.querySelectorAll('.cancel-booking');
+    const cancelForm = document.getElementById('cancelBookingForm');
+    const cancelCancel = document.getElementById('cancelCancel');
+    const closeModal = document.querySelector('.close-modal');
 
-cancelButtons.forEach(button => {
-    button.addEventListener('click', function(e) {
-        e.preventDefault();
-        const bookingId = this.getAttribute('data-booking-id');
-        cancelForm.action = `/bookings/${bookingId}/cancel/`;
-        cancelModal.style.display = 'block';
+    // Open modal with booking ID
+    cancelButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const bookingId = this.getAttribute('data-booking-id');
+            cancelForm.action = `/bookings/${bookingId}/cancel/`;
+            cancelModal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        });
     });
-});
 
-cancelCancel.addEventListener('click', () => {
-    cancelModal.style.display = 'none';
-});
-
-window.addEventListener('click', (event) => {
-    if (event.target === cancelModal) {
+    // Close modal handlers
+    function closeModalHandler() {
         cancelModal.style.display = 'none';
+        document.body.style.overflow = 'auto'; // Re-enable scrolling
     }
+
+    cancelCancel.addEventListener('click', closeModalHandler);
+    closeModal.addEventListener('click', closeModalHandler);
+
+    window.addEventListener('click', (event) => {
+        if (event.target === cancelModal) {
+            closeModalHandler();
+        }
+    });
+
+    // Form submission feedback
+    cancelForm.addEventListener('submit', function(e) {
+        const reason = document.getElementById('cancel_reason').value.trim();
+        if (!reason) {
+            e.preventDefault();
+            alert('Please provide a reason for cancellation.');
+        }
+    });
 });
 </script>
 {% endblock %}

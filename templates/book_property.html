@@ -4,81 +4,129 @@
 {% block content %}
 <div class="booking-container">
     <div class="booking-header">
-        <h1 class="booking-title">Book Your Stay</h1>
-        <p class="booking-subtitle">Reserve {{ property.title }} for your perfect getaway</p>
+        <h1 class="booking-title">Reserve Your Stay</h1>
+        <p class="booking-subtitle">Experience luxury at {{ property.title }}</p>
+        <div class="header-divider"></div>
     </div>
 
-    <div class="property-showcase">
-        <div class="property-image-container">
-            {% if property.images.first %}
-                <img src="{{ property.images.first.image.url }}" alt="{{ property.title }}" class="property-image">
-            {% else %}
-                <img src="{% static 'images/default-property.jpg' %}" alt="{{ property.title }}" class="property-image">
-            {% endif %}
-            <div class="image-overlay">
-                <div class="property-badge">Featured</div>
-            </div>
-        </div>
-        
-        <div class="property-details">
-            <h2 class="property-title">{{ property.title }}</h2>
-            <p class="property-description">{{ property.description|truncatewords:30 }}</p>
-            <div class="property-meta">
-                <div class="location-info">
-                    <i class="location-icon">📍</i>
-                    <span>{{ property.location }}</span>
-                </div>
-                <div class="price-info">
-                    <span class="price-amount">₵{{ property.price|floatformat:"0" }}</span>
-                    <span class="price-period">per night</span>
+    <div class="booking-content">
+        <div class="property-showcase">
+            <div class="property-image-container">
+                {% if property.images.first %}
+                    <img src="{{ property.images.first.image.url }}" alt="{{ property.title }}" class="property-image">
+                {% else %}
+                    <img src="{% static 'images/default-property.jpg' %}" alt="{{ property.title }}" class="property-image">
+                {% endif %}
+                <div class="property-badge">
+                    <i class="fas fa-crown"></i> Premium
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div class="booking-form-container">
-        <form method="POST" class="booking-form needs-validation" novalidate>
-            {% csrf_token %}
             
-            <div class="form-section">
-                <h3 class="section-title">Select Your Dates</h3>
-                <div class="date-inputs">
-                    <div class="date-field">
-                        <label for="start_date" class="form-label">Check-in Date</label>
-                        <div class="input-wrapper">
-                            <input type="text" name="start_date" id="start_date" class="form-control flatpickr date-input" required>
-                            <span class="input-icon">📅</span>
-                        </div>
+            <div class="property-details">
+                <h2 class="property-title">{{ property.title }}</h2>
+                <div class="property-rating">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star-half-alt"></i>
+                    <span class="rating-text">4.7 (128 reviews)</span>
+                </div>
+                <p class="property-description">{{ property.description|truncatewords:30 }}</p>
+                
+                <div class="property-highlights">
+                    <div class="highlight-item">
+                        <i class="fas fa-home"></i>
+                        <span>{{ property.property_type }}</span>
                     </div>
-                    <div class="date-field">
-                        <label for="end_date" class="form-label">Check-out Date</label>
-                        <div class="input-wrapper">
-                            <input type="text" name="end_date" id="end_date" class="form-control flatpickr date-input" required>
-                            <span class="input-icon">📅</span>
-                        </div>
+                    <div class="highlight-item">
+                        <i class="fas fa-users"></i>
+                        <span>Up to {{ property.max_guests }} guests</span>
+                    </div>
+                    <div class="highlight-item">
+                        <i class="fas fa-expand"></i>
+                        <span>{{ property.size }} sq ft</span>
+                    </div>
+                </div>
+                
+                <div class="property-meta">
+                    <div class="location-info">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>{{ property.location }}</span>
+                    </div>
+                    <div class="price-info">
+                        <span class="price-amount">₵{{ property.price|floatformat:"0" }}</span>
+                        <span class="price-period">/ night</span>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="form-section">
-                <h3 class="section-title">Special Requests</h3>
-                <div class="textarea-wrapper">
-                    <label for="special_requests" class="form-label">Any special requirements or requests?</label>
-                    <textarea name="special_requests" id="special_requests" class="form-control request-textarea" rows="4" placeholder="Let us know about any special needs, preferences, or questions..."></textarea>
+        <div class="booking-form-container">
+            <form method="POST" class="booking-form needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="far fa-calendar-alt"></i> Select Dates
+                    </h3>
+                    <div class="date-inputs">
+                        <div class="date-field">
+                            <label for="start_date" class="form-label">Arrival</label>
+                            <div class="input-wrapper">
+                                <input type="text" name="start_date" id="start_date" class="form-control flatpickr date-input" placeholder="Select date" required>
+                                <span class="input-icon"><i class="far fa-calendar"></i></span>
+                            </div>
+                        </div>
+                        <div class="date-field">
+                            <label for="end_date" class="form-label">Departure</label>
+                            <div class="input-wrapper">
+                                <input type="text" name="end_date" id="end_date" class="form-control flatpickr date-input" placeholder="Select date" required>
+                                <span class="input-icon"><i class="far fa-calendar"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="booking-summary">
+                        <div class="summary-item">
+                            <span>₵{{ property.price|floatformat:"0" }} x <span id="nights-count">0</span> nights</span>
+                            <span id="subtotal-amount">₵0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Service fee</span>
+                            <span>₵50</span>
+                        </div>
+                        <div class="summary-total">
+                            <span>Total</span>
+                            <span id="total-amount">₵0</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="form-actions">
-                <button type="submit" class="btn-primary submit-btn">
-                    <span class="btn-text">Confirm Booking</span>
-                    <span class="btn-icon">✨</span>
-                </button>
-                <a href="{% url 'property_detail' pk=property.id %}" class="btn-secondary back-btn">
-                    <span class="btn-icon">←</span>
-                    <span class="btn-text">Back to Property</span>
-                </a>
-            </div>
-        </form>
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="far fa-comment-dots"></i> Special Requests
+                    </h3>
+                    <div class="textarea-wrapper">
+                        <textarea name="special_requests" id="special_requests" class="form-control request-textarea" rows="4" placeholder="Let us know about any special arrangements, dietary requirements, or questions you may have..."></textarea>
+                        <div class="textarea-footer">
+                            <small>We'll do our best to accommodate your needs</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary submit-btn">
+                        <span class="btn-text">Complete Reservation</span>
+                        <span class="btn-icon"><i class="fas fa-arrow-right"></i></span>
+                    </button>
+                    <div class="secure-booking">
+                        <i class="fas fa-lock"></i>
+                        <span>Secure booking with SSL encryption</span>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 
     {% if messages %}
@@ -87,9 +135,12 @@
             <div class="alert alert-{{ message.tags }} custom-alert">
                 <div class="alert-content">
                     <span class="alert-icon">
-                        {% if message.tags == 'success' %}✅{% elif message.tags == 'error' %}❌{% else %}ℹ️{% endif %}
+                        {% if message.tags == 'success' %}<i class="fas fa-check-circle"></i>
+                        {% elif message.tags == 'error' %}<i class="fas fa-exclamation-circle"></i>
+                        {% else %}<i class="fas fa-info-circle"></i>{% endif %}
                     </span>
                     <span class="alert-text">{{ message }}</span>
+                    <button class="alert-close"><i class="fas fa-times"></i></button>
                 </div>
             </div>
         {% endfor %}
@@ -98,385 +149,507 @@
 </div>
 
 <style>
+    :root {
+        --primary-color: #4a6bff;
+        --secondary-color: #6c757d;
+        --accent-color: #ff6b6b;
+        --dark-color: #2d3748;
+        --light-color: #f8f9fa;
+        --success-color: #28a745;
+        --error-color: #dc3545;
+        --info-color: #17a2b8;
+        --border-radius: 12px;
+        --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        --transition: all 0.3s ease;
+    }
+    
     .booking-container {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 2rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem 1rem;
+        font-family: 'Poppins', 'Segoe UI', sans-serif;
+        color: var(--dark-color);
+        background-color: #f5f7ff;
         min-height: 100vh;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-
+    
     .booking-header {
         text-align: center;
         margin-bottom: 3rem;
-        color: white;
     }
-
+    
     .booking-title {
-        font-size: 3rem;
+        font-size: 2.5rem;
         font-weight: 700;
         margin-bottom: 0.5rem;
-        background: linear-gradient(45deg, #fff, #f0f0f0);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        color: var(--dark-color);
+        position: relative;
+        display: inline-block;
     }
-
+    
+    .booking-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: var(--primary-color);
+        border-radius: 2px;
+    }
+    
     .booking-subtitle {
-        font-size: 1.2rem;
-        opacity: 0.9;
-        margin: 0;
+        font-size: 1.1rem;
+        color: var(--secondary-color);
+        margin-top: 1rem;
+        font-weight: 400;
     }
-
-    .property-showcase {
+    
+    .header-divider {
+        height: 1px;
+        background: linear-gradient(to right, transparent, rgba(0,0,0,0.1), transparent);
+        margin: 2rem auto;
+        max-width: 800px;
+    }
+    
+    .booking-content {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1.2fr;
         gap: 2rem;
-        background: white;
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        margin-bottom: 3rem;
-        transition: transform 0.3s ease;
     }
-
+    
+    .property-showcase {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--box-shadow);
+        transition: var(--transition);
+    }
+    
     .property-showcase:hover {
         transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
     }
-
+    
     .property-image-container {
         position: relative;
+        height: 250px;
         overflow: hidden;
     }
-
+    
     .property-image {
         width: 100%;
-        height: 300px;
+        height: 100%;
         object-fit: cover;
-        transition: transform 0.3s ease;
+        transition: transform 0.5s ease;
     }
-
-    .property-image:hover {
+    
+    .property-image-container:hover .property-image {
         transform: scale(1.05);
     }
-
-    .image-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(to bottom, rgba(0,0,0,0.1), transparent);
-    }
-
+    
     .property-badge {
         position: absolute;
         top: 1rem;
         right: 1rem;
-        background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+        background: linear-gradient(45deg, var(--primary-color), #6a5acd);
         color: white;
         padding: 0.5rem 1rem;
         border-radius: 50px;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         font-weight: 600;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
-
-    .property-details {
-        padding: 2rem;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         display: flex;
-        flex-direction: column;
-        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
     }
-
+    
+    .property-details {
+        padding: 1.5rem;
+    }
+    
     .property-title {
-        font-size: 2rem;
+        font-size: 1.5rem;
         font-weight: 700;
-        color: #333;
-        margin-bottom: 1rem;
-        background: linear-gradient(45deg, #667eea, #764ba2);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        color: var(--dark-color);
+        margin-bottom: 0.5rem;
     }
-
+    
+    .property-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        margin-bottom: 1rem;
+        color: #ffc107;
+    }
+    
+    .rating-text {
+        margin-left: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--secondary-color);
+    }
+    
     .property-description {
-        color: #666;
-        font-size: 1.1rem;
+        color: var(--secondary-color);
+        font-size: 0.95rem;
         line-height: 1.6;
         margin-bottom: 1.5rem;
     }
-
+    
+    .property-highlights {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .highlight-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--secondary-color);
+    }
+    
+    .highlight-item i {
+        color: var(--primary-color);
+    }
+    
     .property-meta {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        padding-top: 1rem;
+        border-top: 1px dashed #e0e0e0;
     }
-
+    
     .location-info {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        color: #666;
-        font-size: 1rem;
+        font-size: 0.9rem;
+        color: var(--secondary-color);
     }
-
-    .location-icon {
-        font-size: 1.2rem;
+    
+    .location-info i {
+        color: var(--accent-color);
     }
-
+    
     .price-info {
         text-align: right;
     }
-
+    
     .price-amount {
-        font-size: 2rem;
+        font-size: 1.5rem;
         font-weight: 700;
-        color: #667eea;
+        color: var(--primary-color);
     }
-
+    
     .price-period {
-        color: #666;
-        font-size: 0.9rem;
+        color: var(--secondary-color);
+        font-size: 0.8rem;
         display: block;
-        margin-top: -0.5rem;
+        margin-top: -0.3rem;
     }
-
+    
     .booking-form-container {
         background: white;
-        border-radius: 20px;
-        padding: 2.5rem;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        box-shadow: var(--box-shadow);
+        position: sticky;
+        top: 1rem;
+    }
+    
+    .form-section {
         margin-bottom: 2rem;
     }
-
-    .form-section {
-        margin-bottom: 2.5rem;
-    }
-
+    
     .section-title {
-        font-size: 1.5rem;
+        font-size: 1.2rem;
         font-weight: 600;
-        color: #333;
+        color: var(--dark-color);
         margin-bottom: 1.5rem;
-        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
-
-    .section-title::after {
-        content: '';
-        position: absolute;
-        bottom: -0.5rem;
-        left: 0;
-        width: 50px;
-        height: 3px;
-        background: linear-gradient(45deg, #667eea, #764ba2);
-        border-radius: 2px;
+    
+    .section-title i {
+        color: var(--primary-color);
     }
-
+    
     .date-inputs {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
+        gap: 1rem;
     }
-
+    
     .date-field {
         display: flex;
         flex-direction: column;
     }
-
+    
     .form-label {
-        font-weight: 600;
-        color: #333;
+        font-weight: 500;
+        color: var(--dark-color);
         margin-bottom: 0.5rem;
         font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
     }
-
+    
     .input-wrapper {
         position: relative;
     }
-
+    
     .date-input, .request-textarea {
-        border: 2px solid #e0e0e0;
-        border-radius: 12px;
-        padding: 1rem;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: var(--border-radius);
+        padding: 0.8rem 1rem;
+        font-size: 0.95rem;
+        transition: var(--transition);
+        background: white;
+        width: 100%;
     }
-
+    
     .date-input:focus, .request-textarea:focus {
         outline: none;
-        border-color: #667eea;
-        background: white;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(74, 107, 255, 0.1);
     }
-
+    
     .input-icon {
         position: absolute;
         right: 1rem;
         top: 50%;
         transform: translateY(-50%);
-        font-size: 1.2rem;
-        color: #667eea;
+        color: var(--primary-color);
+        pointer-events: none;
     }
-
+    
     .textarea-wrapper {
         display: flex;
         flex-direction: column;
     }
-
+    
     .request-textarea {
         resize: vertical;
         min-height: 120px;
     }
-
+    
+    .textarea-footer {
+        margin-top: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--secondary-color);
+        text-align: right;
+    }
+    
+    .booking-summary {
+        background: #f9faff;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.8rem;
+        font-size: 0.9rem;
+        color: var(--secondary-color);
+    }
+    
+    .summary-total {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e0e0e0;
+        font-weight: 600;
+        color: var(--dark-color);
+    }
+    
     .form-actions {
         display: flex;
+        flex-direction: column;
         gap: 1rem;
-        justify-content: center;
-        margin-top: 2rem;
     }
-
-    .btn-primary, .btn-secondary {
+    
+    .btn-primary {
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 0.5rem;
-        padding: 1rem 2rem;
+        padding: 1rem;
         border: none;
-        border-radius: 50px;
+        border-radius: var(--border-radius);
         font-size: 1rem;
         font-weight: 600;
         text-decoration: none;
-        transition: all 0.3s ease;
+        transition: var(--transition);
         cursor: pointer;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .btn-primary {
-        background: linear-gradient(45deg, #667eea, #764ba2);
+        background: linear-gradient(45deg, var(--primary-color), #6a5acd);
         color: white;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 4px 15px rgba(74, 107, 255, 0.3);
     }
-
+    
     .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 8px 25px rgba(74, 107, 255, 0.4);
     }
-
-    .btn-secondary {
-        background: linear-gradient(45deg, #6c757d, #5a6268);
-        color: white;
-        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
-    }
-
-    .btn-secondary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
-        color: white;
-        text-decoration: none;
-    }
-
+    
     .btn-icon {
-        font-size: 1.1rem;
+        transition: var(--transition);
     }
-
+    
+    .btn-primary:hover .btn-icon {
+        transform: translateX(3px);
+    }
+    
+    .secure-booking {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--secondary-color);
+    }
+    
+    .secure-booking i {
+        color: var(--success-color);
+    }
+    
     .messages-container {
         margin-top: 2rem;
     }
-
+    
     .custom-alert {
         border: none;
-        border-radius: 12px;
+        border-radius: var(--border-radius);
         padding: 1rem 1.5rem;
         margin-bottom: 1rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shadow: var(--box-shadow);
+        position: relative;
+        overflow: hidden;
     }
-
+    
+    .custom-alert::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 5px;
+    }
+    
+    .alert-success {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: var(--success-color);
+    }
+    
+    .alert-success::before {
+        background-color: var(--success-color);
+    }
+    
+    .alert-error {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: var(--error-color);
+    }
+    
+    .alert-error::before {
+        background-color: var(--error-color);
+    }
+    
+    .alert-info {
+        background-color: rgba(23, 162, 184, 0.1);
+        color: var(--info-color);
+    }
+    
+    .alert-info::before {
+        background-color: var(--info-color);
+    }
+    
     .alert-content {
         display: flex;
         align-items: center;
         gap: 0.75rem;
     }
-
+    
     .alert-icon {
         font-size: 1.2rem;
     }
-
+    
     .alert-text {
         flex: 1;
         font-weight: 500;
     }
-
-    .alert-success {
-        background: linear-gradient(45deg, #28a745, #20c997);
-        color: white;
+    
+    .alert-close {
+        background: none;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: var(--transition);
     }
-
-    .alert-error {
-        background: linear-gradient(45deg, #dc3545, #fd7e14);
-        color: white;
+    
+    .alert-close:hover {
+        opacity: 1;
     }
-
-    .alert-info {
-        background: linear-gradient(45deg, #17a2b8, #6f42c1);
-        color: white;
-    }
-
+    
     /* Responsive Design */
-    @media (max-width: 768px) {
-        .booking-container {
-            padding: 1rem;
+    @media (max-width: 992px) {
+        .booking-content {
+            grid-template-columns: 1fr;
         }
-
+        
+        .booking-form-container {
+            position: static;
+        }
+    }
+    
+    @media (max-width: 768px) {
         .booking-title {
             font-size: 2rem;
         }
-
-        .property-showcase {
-            grid-template-columns: 1fr;
-        }
-
-        .property-image {
-            height: 200px;
-        }
-
+        
         .date-inputs {
             grid-template-columns: 1fr;
         }
-
-        .form-actions {
-            flex-direction: column;
-        }
-
-        .btn-primary, .btn-secondary {
-            justify-content: center;
-        }
     }
-
+    
     /* Flatpickr Custom Styling */
     .flatpickr-calendar {
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        font-family: 'Poppins', sans-serif;
     }
-
+    
     .flatpickr-day.selected {
-        background: linear-gradient(45deg, #667eea, #764ba2);
-        border-color: #667eea;
+        background: var(--primary-color);
+        border-color: var(--primary-color);
     }
-
+    
     .flatpickr-day:hover {
-        background: rgba(102, 126, 234, 0.1);
+        background: rgba(74, 107, 255, 0.1);
+    }
+    
+    /* Animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .booking-container {
+        animation: fadeIn 0.5s ease-out;
     }
 </style>
 {% endblock %}
 
 {% block scripts %}
 {{ block.super }}
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <!-- Flatpickr CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <!-- Flatpickr JS -->
@@ -493,14 +666,56 @@
         {% endfor %}
     ];
 
-    flatpickr(".flatpickr", {
+    const pricePerNight = {{ property.price }};
+    const serviceFee = 50;
+    
+    const startDateInput = flatpickr("#start_date", {
         dateFormat: "Y-m-d",
         minDate: "today",
         disable: disabledRanges,
-        theme: "material_blue"
+        onChange: function(selectedDates, dateStr, instance) {
+            if (selectedDates.length) {
+                endDateInput.set('minDate', new Date(selectedDates[0].getTime() + 86400000));
+                calculateTotal();
+            }
+        }
     });
-
-    // Add smooth scrolling and form validation feedback
+    
+    const endDateInput = flatpickr("#end_date", {
+        dateFormat: "Y-m-d",
+        minDate: new Date().fp_incr(1),
+        disable: disabledRanges,
+        onChange: function(selectedDates, dateStr, instance) {
+            calculateTotal();
+        }
+    });
+    
+    function calculateTotal() {
+        const startDate = startDateInput.selectedDates[0];
+        const endDate = endDateInput.selectedDates[0];
+        
+        if (startDate && endDate) {
+            const diffTime = Math.abs(endDate - startDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            document.getElementById('nights-count').textContent = diffDays;
+            
+            const subtotal = pricePerNight * diffDays;
+            const total = subtotal + serviceFee;
+            
+            document.getElementById('subtotal-amount').textContent = `₵${subtotal.toFixed(2)}`;
+            document.getElementById('total-amount').textContent = `₵${total.toFixed(2)}`;
+        }
+    }
+    
+    // Close alert messages
+    document.querySelectorAll('.alert-close').forEach(button => {
+        button.addEventListener('click', function() {
+            this.closest('.custom-alert').style.display = 'none';
+        });
+    });
+    
+    // Form validation
     document.querySelector('.booking-form').addEventListener('submit', function(e) {
         const form = this;
         if (!form.checkValidity()) {
@@ -518,7 +733,7 @@
         }
         form.classList.add('was-validated');
     });
-
+    
     // Add keyframes for shake animation
     const style = document.createElement('style');
     style.textContent = `

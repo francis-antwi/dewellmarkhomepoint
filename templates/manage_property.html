@@ -1,7 +1,379 @@
-{% extends 'index.html' %}
 {% load static %}
 
- {% block content %}
+{% block content %}
+<style>
+    :root {
+        --primary-color: #4a6fa5;
+        --secondary-color: #f8f9fa;
+        --accent-color: #3a5a80;
+        --text-color: #333;
+        --light-text: #666;
+        --border-color: #ddd;
+        --error-color: #e74c3c;
+        --success-color: #2ecc71;
+    }
+    
+    .manage-property-section {
+        padding: 2rem 0;
+        background-color: var(--secondary-color);
+        min-height: 100vh;
+    }
+    
+    .manage-property-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border-color);
+        background-color: var(--primary-color);
+        color: white;
+    }
+    
+    .section-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+    }
+    
+    .back-btn {
+        color: white;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        transition: opacity 0.2s;
+    }
+    
+    .back-btn:hover {
+        opacity: 0.8;
+    }
+    
+    .property-form {
+        padding: 2rem;
+    }
+    
+    .form-section {
+        margin-bottom: 2.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .form-section:last-child {
+        border-bottom: none;
+    }
+    
+    .form-section h3 {
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        color: var(--primary-color);
+        font-size: 1.2rem;
+    }
+    
+    .form-row {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-row .form-group {
+        flex: 1;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-color);
+    }
+    
+    .form-group label[required]::after {
+        content: " *";
+        color: var(--error-color);
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-size: 1rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.2);
+    }
+    
+    .form-group textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+    
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    .form-check input {
+        width: auto;
+    }
+    
+    .amenities-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .amenity-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+    
+    .amenity-checkbox:hover {
+        border-color: var(--primary-color);
+    }
+    
+    .amenity-checkbox.is-checked {
+        background-color: rgba(74, 111, 165, 0.1);
+        border-color: var(--primary-color);
+    }
+    
+    .amenity-checkbox label {
+        cursor: pointer;
+        flex-grow: 1;
+    }
+    
+    .image-upload-container {
+        margin-top: 1rem;
+    }
+    
+    .upload-instructions {
+        margin-bottom: 1.5rem;
+    }
+    
+    .upload-instructions p {
+        margin-top: 0;
+        color: var(--light-text);
+    }
+    
+    .upload-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        background-color: var(--primary-color);
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .upload-btn:hover {
+        background-color: var(--accent-color);
+    }
+    
+    .image-preview-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    .image-preview {
+        position: relative;
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .image-preview img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        display: block;
+    }
+    
+    .image-actions {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem;
+    }
+    
+    .set-primary {
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+    }
+    
+    .set-primary input {
+        margin: 0;
+    }
+    
+    .delete-image {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        padding: 0 0.5rem;
+    }
+    
+    .delete-image:hover {
+        color: var(--error-color);
+    }
+    
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .save-btn {
+        padding: 0.8rem 1.5rem;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .save-btn:hover {
+        background-color: var(--accent-color);
+    }
+    
+    .delete-btn {
+        padding: 0.8rem 1.5rem;
+        background-color: var(--error-color);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 0.2s;
+    }
+    
+    .delete-btn:hover {
+        background-color: #c0392b;
+    }
+    
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+    
+    .modal-content {
+        background-color: white;
+        margin: 15% auto;
+        padding: 2rem;
+        border-radius: 8px;
+        max-width: 500px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .confirm-btn {
+        padding: 0.6rem 1.25rem;
+        background-color: var(--error-color);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .cancel-btn {
+        padding: 0.6rem 1.25rem;
+        background-color: var(--light-text);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    @media (max-width: 768px) {
+        .manage-property-container {
+            border-radius: 0;
+        }
+        
+        .property-form {
+            padding: 1.5rem;
+        }
+        
+        .form-row {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .amenities-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+        
+        .form-actions {
+            flex-direction: column-reverse;
+            gap: 1rem;
+        }
+        
+        .save-btn,
+        .delete-btn {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
+
 <section class="manage-property-section">
     <div class="manage-property-container">
         <div class="section-header">
@@ -14,25 +386,38 @@
         <form method="POST" enctype="multipart/form-data" class="property-form">
             {% csrf_token %}
             
+            {% if form.errors %}
+            <div class="form-errors">
+                <p>Please correct the errors below:</p>
+                <ul>
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            
             <div class="form-section">
                 <h3>Basic Information</h3>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="title">Property Title*</label>
+                        <label for="title" required>Property Title</label>
                         <input type="text" id="title" name="title" value="{{ form.title.value|default_if_none:'' }}" required>
                     </div>
                     <div class="form-group">
-                        <label for="property_type">Property Type*</label>
+                        <label for="property_type" required>Property Type</label>
                         <select id="property_type" name="property_type" required>
                             {% for value, display in form.fields.property_type.choices %}
-                            <option value="{{ value }}" {% if form.property_type.value == value %}selected{% endif %}>{{ display }}</option>
+                            <option value="{{ value }}" {% if form.property_type.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ display }}</option>
                             {% endfor %}
                         </select>
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="description">Description*</label>
+                    <label for="description" required>Description</label>
                     <textarea id="description" name="description" required>{{ form.description.value|default_if_none:'' }}</textarea>
                 </div>
             </div>
@@ -41,11 +426,11 @@
                 <h3>Location Details</h3>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="location">Location*</label>
+                        <label for="location" required>Location</label>
                         <input type="text" id="location" name="location" value="{{ form.location.value|default_if_none:'' }}" required>
                     </div>
                     <div class="form-group">
-                        <label for="address">Full Address*</label>
+                        <label for="address" required>Full Address</label>
                         <input type="text" id="address" name="address" value="{{ form.address.value|default_if_none:'' }}" required>
                     </div>
                 </div>
@@ -54,41 +439,39 @@
             <div class="form-section">
                 <h3>Pricing</h3>
                 <div class="form-group">
-                    <label for="price">Price (GHS)*</label>
-                    <input type="number" id="price" name="price" step="0.01" value="{{ form.price.value|default_if_none:'' }}" required>
+                    <label for="price" required>Price (GHS)</label>
+                    <input type="number" id="price" name="price" step="0.01" min="0" value="{{ form.price.value|default_if_none:'' }}" required>
                 </div>
                 <div class="form-check">
                     <input type="checkbox" id="is_available" name="is_available" {% if form.is_available.value %}checked{% endif %}>
                     <label for="is_available">Property is available</label>
                 </div>
             </div>
-<div class="form-section">
-  <h3>Amenities</h3>
-  <div class="amenities-grid">
-    {% for checkbox in form.amenities %}
-      <div class="amenity-checkbox">
-        {{ checkbox }}
-      </div>
-    {% endfor %}
-  </div>
-</div>
-
-
-
-
+            
+            <div class="form-section">
+                <h3>Amenities</h3>
+                <div class="amenities-grid">
+                    {% for checkbox in form.amenities %}
+                    <div class="amenity-checkbox {% if checkbox.data.selected %}is-checked{% endif %}">
+                        {{ checkbox.tag }}
+                        <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
             
             <div class="form-section">
                 <h3>Property Images</h3>
                 <div class="image-upload-container">
                     <div class="upload-instructions">
-                        <p>Upload high-quality images of your property. The first image will be used as the main image.</p>
+                        <p>Upload high-quality images of your property (max 10 images). The first image will be used as the main image.</p>
                         <label for="images" class="upload-btn">
                             <i class="fas fa-cloud-upload-alt"></i> Select Images
-                            <input type="file" id="images" name="images" multiple accept="image/*" style="display: none;">
+                            <input type="file" id="images" name="images" multiple accept="image/*" style="display: none;" {% if not property %}required{% endif %}>
                         </label>
                     </div>
                     
-                    <div class="image-preview-container">
+                    <div class="image-preview-container" id="image-preview-container">
                         {% if property %}
                             {% for image in property.images.all %}
                             <div class="image-preview">
@@ -112,7 +495,7 @@
             <div class="form-actions">
                 <button type="submit" class="save-btn">Save Property</button>
                 {% if property %}
-                <a href="{% url 'manage_property' property.id %}?delete=true" class="delete-btn">Delete Property</a>
+                <a href="{% url 'delete_property' property.id %}" class="delete-btn" id="delete-property-btn">Delete Property</a>
                 {% endif %}
             </div>
         </form>
@@ -125,8 +508,8 @@
         <h3>Confirm Deletion</h3>
         <p>Are you sure you want to delete this property? This action cannot be undone.</p>
         <div class="modal-actions">
-            <button id="confirmDelete" class="confirm-btn">Delete</button>
             <button id="cancelDelete" class="cancel-btn">Cancel</button>
+            <button id="confirmDelete" class="confirm-btn">Delete</button>
         </div>
     </div>
 </div>
@@ -135,21 +518,27 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-
-    // ======================================
-    // 1. Image Upload & Preview Functionality
-    // ======================================
+    // Image Upload & Preview
     const imageInput = document.getElementById('images');
-    const previewContainer = document.querySelector('.image-preview-container');
-
-    if (imageInput && previewContainer) { // Check if elements exist
+    if (imageInput) {
         imageInput.addEventListener('change', function() {
-            // Clear existing previews when new files are selected
-            // This version clears *all* current previews when new files are chosen
-            previewContainer.innerHTML = ''; 
+            const previewContainer = document.getElementById('image-preview-container');
+            const files = this.files;
+            const maxFiles = 10;
             
-            // Handle newly selected files
-            for (let i = 0; i < this.files.length; i++) {
+            if (files.length > maxFiles) {
+                alert(`You can upload a maximum of ${maxFiles} images`);
+                this.value = '';
+                return;
+            }
+            
+            // Clear only new image previews (keep existing ones)
+            const existingPreviews = previewContainer.querySelectorAll('.image-preview:not([data-existing])');
+            existingPreviews.forEach(preview => preview.remove());
+            
+            Array.from(files).forEach((file, index) => {
+                if (!file.type.match('image.*')) continue;
+                
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const preview = document.createElement('div');
@@ -158,124 +547,98 @@ document.addEventListener('DOMContentLoaded', function() {
                         <img src="${e.target.result}" alt="Preview">
                         <div class="image-actions">
                             <label class="set-primary">
-                                <input type="radio" name="primary_image" value="new_${Date.now()}_${i}"> <span>Main</span>
+                                <input type="radio" name="primary_image" value="new_${index}">
+                                <span>Main</span>
                             </label>
-                            <button type="button" class="delete-image">
+                            <button type="button" class="delete-image" data-file-index="${index}">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     `;
                     previewContainer.appendChild(preview);
-
-                    // Add event listener for the delete button on newly created preview
-                    // This uses event delegation or adds listeners directly for dynamic elements
-                    preview.querySelector('.delete-image').addEventListener('click', function() {
-                        this.closest('.image-preview').remove();
-                    });
-                }
-                reader.readAsDataURL(this.files[i]);
-            }
-
-            // Ensure one of the radio buttons is selected for primary image, especially for new uploads
-            // If no existing primary, and new images are added, make the first new one primary
-            const existingPrimary = document.querySelector('input[name="primary_image"]:checked');
-            if (!existingPrimary && this.files.length > 0) {
-                // Find the first new image radio button and check it
-                const firstNewImageRadio = document.querySelector('.image-preview input[name="primary_image"][value^="new_"]');
-                if (firstNewImageRadio) {
-                    firstNewImageRadio.checked = true;
-                }
-            }
+                    
+                    // Set first new image as primary if no primary exists
+                    const primaryExists = document.querySelector('input[name="primary_image"]:checked');
+                    if (!primaryExists && index === 0) {
+                        preview.querySelector('input[type="radio"]').checked = true;
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
         });
     }
 
-    // ======================================
-    // 2. Delete Existing Image Functionality
-    // ======================================
-    // Attach event listeners to existing delete buttons (for images already saved)
-    document.querySelectorAll('.image-preview .delete-image').forEach(button => {
-        button.addEventListener('click', function() {
-            const imageId = this.getAttribute('data-image-id');
-            if (imageId) {
-                // Existing image - add hidden input to mark for deletion
+    // Delete Image Buttons
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.delete-image')) {
+            const btn = e.target.closest('.delete-image');
+            const preview = btn.closest('.image-preview');
+            
+            if (btn.dataset.imageId) {
+                // Existing image - create hidden input to mark for deletion
                 const input = document.createElement('input');
                 input.type = 'hidden';
-                input.name = 'delete_images'; // This name should be handled in your Django view
-                input.value = imageId;
+                input.name = 'delete_images';
+                input.value = btn.dataset.imageId;
                 document.querySelector('.property-form').appendChild(input);
+            } else if (btn.dataset.fileIndex) {
+                // New image - remove from FileList
+                const dataTransfer = new DataTransfer();
+                const files = imageInput.files;
+                
+                for (let i = 0; i < files.length; i++) {
+                    if (i != btn.dataset.fileIndex) {
+                        dataTransfer.items.add(files[i]);
+                    }
+                }
+                
+                imageInput.files = dataTransfer.files;
             }
-            this.closest('.image-preview').remove();
-        });
+            
+            preview.remove();
+        }
     });
 
-    // ======================================
-    // 3. Delete Property Modal Logic
-    // ======================================
+    // Delete Property Modal
     const deleteModal = document.getElementById('deleteModal');
-    const deleteButtons = document.querySelectorAll('[href*="delete=true"]'); // Targets all 'Delete Property' links
+    const deleteBtn = document.getElementById('delete-property-btn');
     const confirmDelete = document.getElementById('confirmDelete');
     const cancelDelete = document.getElementById('cancelDelete');
-
-    if (deleteModal && deleteButtons.length > 0 && confirmDelete && cancelDelete) { // Check if elements exist
-        // Event listener for showing the modal when a delete button is clicked
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault(); // Prevent default link behavior
-                deleteModal.style.display = 'block';
-            });
+    
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            deleteModal.style.display = 'block';
         });
-
-        // Event listener for cancelling deletion
+    }
+    
+    if (confirmDelete) {
+        confirmDelete.addEventListener('click', function() {
+            if (deleteBtn) {
+                window.location.href = deleteBtn.href;
+            }
+        });
+    }
+    
+    if (cancelDelete) {
         cancelDelete.addEventListener('click', function() {
             deleteModal.style.display = 'none';
         });
-
-        // Event listener for confirming deletion (redirects to the delete URL)
-        confirmDelete.addEventListener('click', function() {
-            // Assumes there's at least one delete button and we're taking its href
-            if (deleteButtons.length > 0) {
-                window.location.href = deleteButtons[0].href; 
-            }
-        });
-
-        // Close modal if user clicks outside of it
-        window.addEventListener('click', function(event) {
-            if (event.target == deleteModal) {
-                deleteModal.style.display = 'none';
-            }
-        });
     }
-
-    // ======================================
-    // 4. Amenity Checkbox Visual State Logic
-    // ======================================
-
-    // Function to update the 'is-checked' class on amenity boxes
-    function updateAmenityBoxState(checkbox) {
-        // Find the closest parent div with the class 'amenity-checkbox'
-        const amenityBox = checkbox.closest('.amenity-checkbox');
-        if (amenityBox) { // Ensure amenityBox is found
-            if (checkbox.checked) {
-                amenityBox.classList.add('is-checked');
-            } else {
-                amenityBox.classList.remove('is-checked');
-            }
+    
+    // Close modal when clicking outside
+    window.addEventListener('click', function(e) {
+        if (e.target === deleteModal) {
+            deleteModal.style.display = 'none';
         }
-    }
-
-    // Initial setup and event listeners for all amenity checkboxes
-    document.querySelectorAll('.amenity-checkbox input[type="checkbox"]').forEach(checkbox => {
-        // Set initial visual state based on Django's rendering (e.g., if it was checked on page load)
-        updateAmenityBoxState(checkbox);
-
-        // Add event listener for when the checkbox state changes (due to user click or programmatically)
-        checkbox.addEventListener('change', function() {
-            updateAmenityBoxState(this); // 'this' refers to the checkbox that triggered the change
-        });
     });
 
-}); // End of DOMContentLoaded
+    // Amenity Checkbox Styling
+    document.querySelectorAll('.amenity-checkbox input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            this.closest('.amenity-checkbox').classList.toggle('is-checked', this.checked);
+        });
+    });
+});
 </script>
-{% endblock %}   
-</body>
-</html>
+{% endblock %}

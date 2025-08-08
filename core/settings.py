@@ -29,7 +29,7 @@ INSTALLED_APPS = [
 
     # Local app
     'smart_property',
-
+    'django.contrib.humanize',
     # Third-party
     'rest_framework',
     'rest_framework_simplejwt',

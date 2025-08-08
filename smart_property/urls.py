@@ -100,4 +100,7 @@ urlpatterns = [
     path('properties/<int:property_id>/images/upload/', views.upload_property_images, name='upload_property_images'),
     path('images/<int:image_id>/delete/', views.delete_property_image, name='delete_property_image'),
     path('images/<int:image_id>/set-primary/', views.set_primary_image, name='set_primary_image'),
+    path('properties/', views.property_list_view, name='property_list'),
+    path('property/delete/<int:pk>/', views.delete_property, name='delete_property'),
+
 ]

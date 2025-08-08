@@ -1,15 +1,389 @@
-{% extends 'index.html' %}
 {% load static %}
 
 {% block content %}
+<style>
+.my-properties-section {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    animation: fadeIn 0.5s ease-out;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.section-header {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 1rem;
+}
+
+.section-header h2 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+.section-header p {
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.add-property-btn {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(to right, #2563eb, #3b82f6);
+    color: white;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    letter-spacing: 0.025em;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    will-change: transform, box-shadow;
+}
+
+.add-property-btn:hover {
+    background: linear-gradient(to right, #1d4ed8, #2563eb);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.add-property-btn i {
+    margin-right: 0.5rem;
+}
+
+.properties-table {
+    background-color: white;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    margin-bottom: 2rem;
+}
+
+.table-header {
+    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.table-row {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+.table-row:hover {
+    background-color: rgba(249, 250, 251, 0.5);
+}
+
+.table-header .table-row {
+    border-bottom: 1px solid rgba(209, 213, 219, 0.5);
+}
+
+.table-cell {
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.property-info {
+    display: flex;
+    align-items: center;
+    grid-column: span 5 / span 5;
+}
+
+.property-image {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    flex-shrink: 0;
+    margin-right: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.property-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.property-image:hover img {
+    transform: scale(1.1);
+}
+
+.property-details h4 {
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+    transition: color 0.2s ease;
+}
+
+.property-details h4 a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.property-details h4 a:hover {
+    color: #2563eb;
+}
+
+.property-details p {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.price {
+    font-weight: 600;
+    color: #1e40af;
+    grid-column: span 2 / span 2;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    min-width: 80px;
+    text-align: center;
+    text-transform: capitalize;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.status-available {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.status-booked {
+    background-color: #f3e8ff;
+    color: #6b21a8;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.25rem;
+    grid-column: span 2 / span 2;
+}
+
+.actions a, .actions button {
+    width: 2.25rem;
+    height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    color: #6b7280;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.actions a:hover, .actions button:hover {
+    transform: scale(1.1);
+}
+
+.edit-btn:hover {
+    color: #2563eb;
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+.view-btn:hover {
+    color: #10b981;
+    background-color: rgba(16, 185, 129, 0.1);
+}
+
+.delete-btn:hover {
+    color: #ef4444;
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2rem;
+    gap: 0.5rem;
+    user-select: none;
+}
+
+.page-link {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    color: #4b5563;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    min-width: 40px;
+    text-align: center;
+}
+
+.page-link:hover {
+    background-color: #f3f4f6;
+    transform: translateY(-1px);
+}
+
+.current-page {
+    font-weight: 500;
+    background: linear-gradient(to right, #2563eb, #3b82f6);
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+}
+
+.no-properties {
+    text-align: center;
+    padding: 4rem 1rem;
+    background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    max-width: 28rem;
+    margin: 0 auto;
+}
+
+.no-properties-icon {
+    width: 5rem;
+    height: 5rem;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(to right, #eff6ff, #dbeafe);
+    border-radius: 9999px;
+    color: #3b82f6;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.no-properties h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+
+.no-properties p {
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive styles */
+@media (min-width: 640px) {
+    .section-header {
+        flex-direction: row;
+        align-items: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .table-header {
+        display: none;
+    }
+    
+    .table-row {
+        display: flex;
+        flex-direction: column;
+        padding: 1.25rem;
+        gap: 1rem;
+        position: relative;
+    }
+    
+    .table-row:not(:last-child):after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 1.25rem;
+        right: 1.25rem;
+        height: 1px;
+        background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.05), transparent);
+    }
+    
+    .table-cell {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        padding: 0.5rem 0;
+    }
+    
+    .table-cell:before {
+        content: attr(data-label);
+        font-weight: 500;
+        color: #6b7280;
+        margin-right: 1rem;
+    }
+    
+    .table-cell.property-info {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .table-cell.property-info:before {
+        content: "Property";
+        margin-bottom: 0.5rem;
+    }
+    
+    .property-info {
+        flex-direction: row;
+    }
+    
+    .property-details {
+        flex: 1;
+    }
+    
+    .actions {
+        justify-content: space-around;
+        padding-top: 1rem;
+        border-top: 1px dashed rgba(0, 0, 0, 0.08);
+        margin-top: 0.5rem;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .property-info {
+        flex-direction: column;
+    }
+    
+    .property-image {
+        margin-bottom: 0.75rem;
+    }
+}
+</style>
+
 <section class="my-properties-section">
     <div class="section-header">
-        <h2>My Properties</h2>
+        <div>
+            <h2>My Properties</h2>
+            <p>Manage your property listings</p>
+        </div>
         <a href="{% url 'upload' %}" class="add-property-btn">
             <i class="fas fa-plus"></i> Add New Property
         </a>
     </div>
     
+    {% if properties %}
     <div class="properties-table">
         <div class="table-header">
             <div class="table-row">
@@ -17,51 +391,53 @@
                 <div class="table-cell">Location</div>
                 <div class="table-cell">Price</div>
                 <div class="table-cell">Status</div>
-                <div class="table-cell">Actions</div>
+                <div class="table-cell" style="text-align: right;">Actions</div>
             </div>
         </div>
         
         <div class="table-body">
             {% for property in properties %}
             <div class="table-row">
-                <div class="table-cell property-info">
+                <div class="table-cell property-info" data-label="Property">
                     <div class="property-image">
-                        <img src="{% if property.images.first %}{{ property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" alt="{{ property.title }}">
+                        <img src="{% if property.images.first %}{{ property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" 
+                             alt="{{ property.title }}">
                     </div>
                     <div class="property-details">
-                        <h4><a href="{% url 'property_detail' property.id %}">{{ property.title }}</a></h4>
+                        <h4>
+                            <a href="{% url 'property_detail' property.id %}">{{ property.title|truncatechars:30 }}</a>
+                        </h4>
                         <p>{{ property.get_property_type_display }}</p>
                     </div>
                 </div>
-                <div class="table-cell">
-                    <p>{{ property.location }}</p>
+                <div class="table-cell" data-label="Location">
+                    <p class="flex items-center">
+                        <i class="fas fa-map-marker-alt" style="margin-right: 0.375rem; color: #60a5fa; font-size: 0.875rem;"></i>
+                        {{ property.location|truncatechars:20 }}
+                    </p>
                 </div>
-                <div class="table-cell">
-                    <p class="price">GH₵ {{ property.price }}</p>
+                <div class="table-cell price" data-label="Price">
+                    GH₵ {{ property.price|floatformat:"0" }}
                 </div>
-                <div class="table-cell">
-                    <span class="status-badge {% if property.is_available %}available{% else %}booked{% endif %}">
+                <div class="table-cell" data-label="Status">
+                    <span class="status-badge {% if property.is_available %}status-available{% else %}status-booked{% endif %}">
                         {% if property.is_available %}Available{% else %}Booked{% endif %}
                     </span>
                 </div>
-                <div class="table-cell actions">
+                <div class="table-cell actions" data-label="Actions">
                     <a href="{% url 'manage_property' property.id %}" class="edit-btn" title="Edit">
                         <i class="fas fa-edit"></i>
                     </a>
                     <a href="{% url 'property_detail' property.id %}" class="view-btn" title="View">
                         <i class="fas fa-eye"></i>
                     </a>
-                    <a href="{% url 'manage_property' property.id %}?delete=true" class="delete-btn" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </a>
+                    <form method="post" action="{% url 'delete_property' property.id %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="delete-btn" title="Delete" onclick="return confirm('Are you sure you want to delete this property?');">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
                 </div>
-            </div>
-            {% empty %}
-            <div class="no-properties">
-                <i class="fas fa-home"></i>
-                <h3>You haven't listed any properties yet</h3>
-                <p>Get started by adding your first property listing</p>
-                <a href="{% url 'upload' %}" class="add-property-btn">Add Property</a>
             </div>
             {% endfor %}
         </div>
@@ -70,22 +446,45 @@
     {% if properties.paginator.num_pages > 1 %}
     <div class="pagination">
         {% if properties.has_previous %}
-        <a href="?page=1" class="page-link">&laquo; First</a>
-        <a href="?page={{ properties.previous_page_number }}" class="page-link">Previous</a>
+        <a href="?page=1" class="page-link">
+            &laquo; First
+        </a>
+        <a href="?page={{ properties.previous_page_number }}" class="page-link">
+            Previous
+        </a>
         {% endif %}
         
         {% for num in properties.paginator.page_range %}
             {% if properties.number == num %}
-            <span class="current-page">{{ num }}</span>
+            <span class="current-page page-link">{{ num }}</span>
             {% elif num > properties.number|add:'-3' and num < properties.number|add:'3' %}
-            <a href="?page={{ num }}" class="page-link">{{ num }}</a>
+            <a href="?page={{ num }}" class="page-link">
+                {{ num }}
+            </a>
             {% endif %}
         {% endfor %}
         
         {% if properties.has_next %}
-        <a href="?page={{ properties.next_page_number }}" class="page-link">Next</a>
-        <a href="?page={{ properties.paginator.num_pages }}" class="page-link">Last &raquo;</a>
+        <a href="?page={{ properties.next_page_number }}" class="page-link">
+            Next
+        </a>
+        <a href="?page={{ properties.paginator.num_pages }}" class="page-link">
+            Last &raquo;
+        </a>
         {% endif %}
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <div class="no-properties">
+        <div class="no-properties-icon">
+            <i class="fas fa-home" style="font-size: 1.75rem;"></i>
+        </div>
+        <h3>No Properties Listed Yet</h3>
+        <p>Start your real estate journey by adding your first property</p>
+        <a href="{% url 'upload' %}" class="add-property-btn">
+            <i class="fas fa-plus"></i> Add Property
+        </a>
     </div>
     {% endif %}
 </section>

@@ -1,62 +1,537 @@
-{% extends 'index.html' %}
+
 {% load static %}
 
 {% block content %}
-<style>/* Lightbox Modal Styles */
-.lightbox {
-    position: fixed;
-    z-index: 9999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+<style>
+    /* Lightbox Modal Styles */
+    .lightbox {
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
 
-.lightbox-content {
-    max-width: 90%;
-    max-height: 90%;
-}
+    .lightbox.active {
+        opacity: 1;
+        visibility: visible;
+    }
 
-.close {
-    position: absolute;
-    top: 40px;
-    right: 60px;
-    color: white;
-    font-size: 40px;
-    font-weight: bold;
-    cursor: pointer;
-}
+    .lightbox-content {
+        max-width: 90%;
+        max-height: 90%;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+    }
+
+    .close {
+        position: absolute;
+        top: 30px;
+        right: 30px;
+        color: white;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 10;
+    }
+
+    /* Property Detail Section */
+    .property-detail-section {
+        padding: 2rem 0;
+        background-color: #f9f9f9;
+    }
+
+    .property-detail-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    /* Image Gallery */
+    .property-gallery {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .main-image {
+        width: 100%;
+        height: 400px;
+        overflow: hidden;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .main-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        cursor: zoom-in;
+        transition: transform 0.3s ease;
+    }
+
+    .main-image img:hover {
+        transform: scale(1.02);
+    }
+
+    .thumbnail-images {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+    }
+
+    .thumbnail {
+        height: 100px;
+        overflow: hidden;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+
+    .thumbnail:hover {
+        transform: translateY(-5px);
+    }
+
+    .thumbnail img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Property Info */
+    .property-info {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .property-info h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+
+    .location {
+        color: #666;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .property-highlights {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        align-items: center;
+    }
+
+    .price {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #2c3e50;
+    }
+
+    .type-badge {
+        background: #3498db;
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+    }
+
+    .availability {
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+    }
+
+    .available {
+        background: #2ecc71;
+        color: white;
+    }
+
+    .unavailable {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .property-description {
+        margin-bottom: 2rem;
+    }
+
+    .property-description h3 {
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+        color: #333;
+    }
+
+    .property-description p {
+        line-height: 1.6;
+        color: #555;
+    }
+
+    /* Amenities */
+    .property-amenities {
+        margin-bottom: 2rem;
+    }
+
+    .property-amenities h3 {
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+        color: #333;
+    }
+
+    .amenities-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .amenity-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #555;
+    }
+
+    .amenity-item i {
+        color: #3498db;
+    }
+
+    /* Booking Form */
+    .booking-form {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+
+    .booking-form h3 {
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+        color: #333;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+
+    .form-group textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .book-now-btn {
+        background: #e74c3c;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.3s ease;
+        width: 100%;
+    }
+
+    .book-now-btn:hover {
+        background: #c0392b;
+    }
+
+    /* Owner Actions */
+    .owner-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .edit-btn, .delete-btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .edit-btn {
+        background: #3498db;
+        color: white;
+        border: none;
+    }
+
+    .edit-btn:hover {
+        background: #2980b9;
+    }
+
+    .delete-btn {
+        background: #e74c3c;
+        color: white;
+        border: none;
+    }
+
+    .delete-btn:hover {
+        background: #c0392b;
+    }
+
+    /* Reviews Section */
+    .property-reviews {
+        max-width: 1200px;
+        margin: 3rem auto;
+        padding: 0 1rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.8rem;
+        color: #333;
+    }
+
+    .add-review-btn {
+        background: #2ecc71;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .add-review-btn:hover {
+        background: #27ae60;
+    }
+
+    .reviews-container {
+        display: grid;
+        gap: 1.5rem;
+    }
+
+    .review-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .reviewer-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .reviewer-info img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .rating {
+        color: #f1c40f;
+    }
+
+    .review-date {
+        color: #777;
+        font-size: 0.9rem;
+    }
+
+    .review-content p {
+        line-height: 1.6;
+        color: #555;
+    }
+
+    .no-reviews {
+        text-align: center;
+        color: #777;
+        padding: 2rem;
+        background: white;
+        border-radius: 8px;
+    }
+
+    /* Review Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 9998;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.7);
+    }
+
+    .modal-content {
+        background: white;
+        margin: 5% auto;
+        padding: 2rem;
+        border-radius: 8px;
+        max-width: 600px;
+        width: 90%;
+        position: relative;
+    }
+
+    .close-modal {
+        position: absolute;
+        top: 1rem;
+        right: 1.5rem;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #777;
+    }
+
+    .modal-content h2 {
+        margin-bottom: 1.5rem;
+        color: #333;
+    }
+
+    .rating-input {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        margin-bottom: 1rem;
+    }
+
+    .rating-input input {
+        display: none;
+    }
+
+    .rating-input label {
+        cursor: pointer;
+        font-size: 1.5rem;
+        color: #ddd;
+        margin-right: 0.5rem;
+    }
+
+    .rating-input input:checked ~ label,
+    .rating-input label:hover,
+    .rating-input label:hover ~ label {
+        color: #f1c40f;
+    }
+
+    .submit-review-btn {
+        background: #2ecc71;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.3s ease;
+        margin-top: 1rem;
+    }
+
+    .submit-review-btn:hover {
+        background: #27ae60;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 992px) {
+        .property-detail-container {
+            grid-template-columns: 1fr;
+        }
+
+        .thumbnail-images {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .amenities-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .thumbnail-images {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .owner-actions {
+            flex-direction: column;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .main-image {
+            height: 300px;
+        }
+
+        .thumbnail-images {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
 </style>
+
 <section class="property-detail-section">
     <div class="property-detail-container">
         <!-- Property Images Gallery -->
-       <!-- Image Gallery -->
-<div class="property-gallery">
-    <div class="main-image">
-        <img src="{% if property.images.first %}{{ property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" 
-             alt="{{ property.title }}" 
-             class="clickable-image">
-    </div>
-    <div class="thumbnail-images">
-        {% for image in property.images.all %}
-        <div class="thumbnail">
-            <img src="{{ image.image.url }}" alt="{{ property.title }}" class="clickable-image">
+        <div class="property-gallery">
+            <div class="main-image">
+                <img src="{% if property.images.first %}{{ property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" 
+                     alt="{{ property.title }}" 
+                     class="clickable-image">
+            </div>
+            <div class="thumbnail-images">
+                {% for image in property.images.all %}
+                <div class="thumbnail">
+                    <img src="{{ image.image.url }}" alt="{{ property.title }} - Image {{ forloop.counter }}" class="clickable-image">
+                </div>
+                {% empty %}
+                <div class="thumbnail">
+                    <img src="{% static 'images/default-property.jpg' %}" alt="Default property image" class="clickable-image">
+                </div>
+                {% endfor %}
+            </div>
         </div>
-        {% endfor %}
-    </div>
-</div>
 
-<!-- Lightbox Modal -->
-<div id="lightboxModal" class="lightbox" style="display:none;">
-    <span class="close" onclick="closeLightbox()">&times;</span>
-    <img class="lightbox-content" id="lightboxImage">
-</div>
-
+        <!-- Lightbox Modal -->
+        <div id="lightboxModal" class="lightbox">
+            <span class="close" onclick="closeLightbox()">&times;</span>
+            <img class="lightbox-content" id="lightboxImage" alt="Enlarged view">
+        </div>
         
         <!-- Property Details -->
         <div class="property-info">
@@ -64,7 +539,7 @@
             <p class="location"><i class="fas fa-map-marker-alt"></i> {{ property.location }}</p>
             
             <div class="property-highlights">
-                <div class="price">GH₵ {{ property.price }}</div>
+                <div class="price">GH₵ {{ property.price|floatformat:2 }}</div>
                 <div class="type-badge">{{ property.get_property_type_display }}</div>
                 {% if property.is_available %}
                 <div class="availability available">Available</div>
@@ -75,60 +550,68 @@
             
             <div class="property-description">
                 <h3>Description</h3>
-                <p>{{ property.description }}</p>
+                <p>{{ property.description|linebreaksbr }}</p>
             </div>
             
             {% if property.amenities.all %}
-<div class="property-amenities">
-    <h3>Amenities</h3>
-    <div class="amenities-grid">
-        {% for amenity in property.amenities.all %}
-        <div class="amenity-item">
-            <i class="fas fa-{{ amenity.icon }}"></i>
-            <span>{{ amenity.name }}</span>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-{% endif %}
-
+            <div class="property-amenities">
+                <h3>Amenities</h3>
+                <div class="amenities-grid">
+                    {% for amenity in property.amenities.all %}
+                    <div class="amenity-item">
+                        <i class="fas fa-{{ amenity.icon|default:'check-circle' }}"></i>
+                        <span>{{ amenity.name }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
             
             <!-- Booking Form -->
-            {% if property.is_available and not is_owner %}
+            {% if property.is_available and not is_owner and user.is_authenticated %}
             <div class="booking-form">
                 <h3>Book This Property</h3>
                 <form method="POST" action="{% url 'book' property.id %}">
-    {% csrf_token %}
-    {{ form.non_field_errors }}
+                    {% csrf_token %}
+                    {{ form.non_field_errors }}
 
-    <div class="form-group">
-        {{ form.start_date.label_tag }}
-        {{ form.start_date }}
-        {{ form.start_date.errors }}
-    </div>
+                    <div class="form-group">
+                        {{ form.start_date.label_tag }}
+                        {{ form.start_date }}
+                        {% if form.start_date.errors %}
+                        <div class="error">{{ form.start_date.errors }}</div>
+                        {% endif %}
+                    </div>
 
-    <div class="form-group">
-        {{ form.end_date.label_tag }}
-        {{ form.end_date }}
-        {{ form.end_date.errors }}
-    </div>
+                    <div class="form-group">
+                        {{ form.end_date.label_tag }}
+                        {{ form.end_date }}
+                        {% if form.end_date.errors %}
+                        <div class="error">{{ form.end_date.errors }}</div>
+                        {% endif %}
+                    </div>
 
-    <div class="form-group">
-        {{ form.special_requests.label_tag }}
-        {{ form.special_requests }}
-        {{ form.special_requests.errors }}
-    </div>
+                    <div class="form-group">
+                        {{ form.special_requests.label_tag }}
+                        {{ form.special_requests }}
+                        {% if form.special_requests.errors %}
+                        <div class="error">{{ form.special_requests.errors }}</div>
+                        {% endif %}
+                    </div>
 
-    <button type="submit" class="book-now-btn">Book Now</button>
-</form>
-
+                    <button type="submit" class="book-now-btn">Book Now</button>
+                </form>
+            </div>
+            {% elif not user.is_authenticated %}
+            <div class="booking-form">
+                <p>Please <a href="{% url 'login' %}?next={{ request.path }}">log in</a> to book this property.</p>
             </div>
             {% endif %}
             
             {% if is_owner %}
             <div class="owner-actions">
                 <a href="{% url 'manage_property' property.id %}" class="edit-btn">Edit Property</a>
-                <a href="{% url 'manage_property' property.id %}?delete=true" class="delete-btn">Delete Property</a>
+                <a href="{% url 'manage_property' property.id %}?delete=true" class="delete-btn" onclick="return confirm('Are you sure you want to delete this property?')">Delete Property</a>
             </div>
             {% endif %}
         </div>
@@ -139,7 +622,7 @@
 <section class="property-reviews">
     <div class="section-header">
         <h2>Reviews</h2>
-        {% if user.is_authenticated and not is_owner %}
+        {% if user.is_authenticated and not is_owner and not user_review_exists %}
         <button class="add-review-btn" id="openReviewModal">Add Review</button>
         {% endif %}
     </div>
@@ -149,16 +632,13 @@
         <div class="review-card">
             <div class="review-header">
                 <div class="reviewer-info">
-                    <img src="{% if review.user.profile_picture %}{{ review.user.profile_picture.url }}{% else %}{% static 'images/default-profile.png' %}{% endif %}" alt="{{ review.user.username }}">
+                    <img src="{% if review.user.profile_picture %}{{ review.user.profile_picture.url }}{% else %}{% static 'images/default-profile.png' %}{% endif %}" 
+                         alt="{{ review.user.username }}'s profile picture">
                     <div>
-                        <h4>{{ review.user.username }}</h4>
+                        <h4>{{ review.user.get_full_name|default:review.user.username }}</h4>
                         <div class="rating">
                             {% for i in "12345" %}
-                                {% if forloop.counter <= review.rating %}
-                                <i class="fas fa-star"></i>
-                                {% else %}
-                                <i class="far fa-star"></i>
-                                {% endif %}
+                                <i class="fas fa-star{% if forloop.counter > review.rating %}-o{% endif %}"></i>
                             {% endfor %}
                         </div>
                     </div>
@@ -166,7 +646,7 @@
                 <div class="review-date">{{ review.created_at|date:"F j, Y" }}</div>
             </div>
             <div class="review-content">
-                <p>{{ review.comment }}</p>
+                <p>{{ review.comment|linebreaksbr }}</p>
             </div>
         </div>
         {% empty %}
@@ -186,14 +666,14 @@
                 <label>Rating</label>
                 <div class="rating-input">
                     {% for i in "54321" %}
-                    <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}">
+                    <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" {% if forloop.counter == 3 %}checked{% endif %}>
                     <label for="star{{ i }}"><i class="fas fa-star"></i></label>
                     {% endfor %}
                 </div>
             </div>
             <div class="form-group">
                 <label for="comment">Your Review</label>
-                <textarea id="comment" name="comment" required></textarea>
+                <textarea id="comment" name="comment" required placeholder="Share your experience with this property..."></textarea>
             </div>
             <button type="submit" class="submit-review-btn">Submit Review</button>
         </form>
@@ -213,18 +693,21 @@ document.addEventListener("DOMContentLoaded", function () {
     if (btn) {
         btn.onclick = function () {
             modal.style.display = "block";
+            document.body.style.overflow = "hidden";
         };
     }
 
     if (span) {
         span.onclick = function () {
             modal.style.display = "none";
+            document.body.style.overflow = "auto";
         };
     }
 
     window.onclick = function (event) {
         if (event.target === modal) {
             modal.style.display = "none";
+            document.body.style.overflow = "auto";
         }
     };
 
@@ -235,10 +718,11 @@ document.addEventListener("DOMContentLoaded", function () {
     thumbnails.forEach(thumbnail => {
         thumbnail.addEventListener('click', () => {
             mainImage.src = thumbnail.src;
+            mainImage.alt = thumbnail.alt;
         });
     });
 
-    // Lightbox full image
+    // Lightbox functionality
     const images = document.querySelectorAll('.clickable-image');
     const lightbox = document.getElementById('lightboxModal');
     const lightboxImage = document.getElementById('lightboxImage');
@@ -246,17 +730,36 @@ document.addEventListener("DOMContentLoaded", function () {
     images.forEach(img => {
         img.addEventListener('click', function () {
             lightboxImage.src = this.src;
-            lightbox.style.display = 'flex';
+            lightboxImage.alt = this.alt;
+            lightbox.classList.add('active');
+            document.body.style.overflow = "hidden";
         });
     });
 
     window.closeLightbox = function () {
-        lightbox.style.display = 'none';
+        lightbox.classList.remove('active');
+        document.body.style.overflow = "auto";
     };
 
     lightbox.addEventListener('click', function (e) {
-        if (e.target === lightbox) closeLightbox();
+        if (e.target === lightbox || e.target.classList.contains('close')) {
+            closeLightbox();
+        }
     });
+
+    // Prevent form submission if dates are invalid
+    const bookingForm = document.querySelector('.booking-form form');
+    if (bookingForm) {
+        bookingForm.addEventListener('submit', function(e) {
+            const startDate = new Date(this.querySelector('[name="start_date"]').value);
+            const endDate = new Date(this.querySelector('[name="end_date"]').value);
+            
+            if (startDate >= endDate) {
+                e.preventDefault();
+                alert('End date must be after start date');
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

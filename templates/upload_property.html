@@ -1,64 +1,287 @@
-{% extends 'extends.html' %}
+
+{% load static %}
+
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Property</title>
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  <style>
+    :root {
+      --primary-color: #4a6fa5;
+      --secondary-color: #f8f9fa;
+      --accent-color: #3a5a80;
+      --text-color: #333;
+      --light-text: #666;
+      --border-color: #ddd;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--secondary-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      padding: 0;
+      margin: 0;
+    }
+    
+    header {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 1.5rem;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    header h2 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+    
+    .form-container {
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    #property-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+    
+    #property-form input,
+    #property-form select,
+    #property-form textarea {
+      padding: 0.8rem;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 1rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    
+    #property-form textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    
+    #property-form input:focus,
+    #property-form select:focus,
+    #property-form textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.2);
+    }
+    
+    #property-form button {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 0.8rem;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    #property-form button:hover {
+      background-color: var(--accent-color);
+    }
+    
+    .file-input-container {
+      position: relative;
+    }
+    
+    .file-input-label {
+      display: block;
+      padding: 0.8rem;
+      border: 1px dashed var(--border-color);
+      border-radius: 4px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .file-input-label:hover {
+      border-color: var(--primary-color);
+      background-color: rgba(74, 111, 165, 0.05);
+    }
+    
+    #image {
+      position: absolute;
+      opacity: 0;
+      width: 0.1px;
+      height: 0.1px;
+      overflow: hidden;
+    }
+    
+    .preview-container {
+      margin-top: 1rem;
+      display: none;
+    }
+    
+    .preview-image {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 4px;
+    }
+    
+    @media (max-width: 768px) {
+      .form-container {
+        margin: 1rem;
+        padding: 1.5rem;
+      }
+    }
+  </style>
 </head>
 <body>
-  <header><h2>Upload Property</h2></header>
+  <header>
+    <h2>Upload Property</h2>
+  </header>
+  
   <div class="form-container">
     <form id="property-form" enctype="multipart/form-data">
-      <input type="text" id="title" placeholder="Title" required /><br />
-      <textarea id="description" placeholder="Description" required></textarea><br />
-      <input type="number" id="price" placeholder="Price" required /><br />
-      <input type="text" id="location" placeholder="Location" required /><br />
-      <select id="property_type">
-        <option value="hostel">Hostel</option>
-        <option value="room">Room</option>
-        <option value="house">House</option>
-        <option value="land">Land</option>
-      </select><br />
-      <input type="file" id="image" accept="image/*" /><br />
-      <button type="submit">Submit</button>
+      <div class="form-group">
+        <label for="title" class="sr-only">Title</label>
+        <input type="text" id="title" placeholder="Property Title" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="description" class="sr-only">Description</label>
+        <textarea id="description" placeholder="Detailed description of the property" required></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label for="price" class="sr-only">Price</label>
+        <input type="number" id="price" placeholder="Price (GHC)" min="0" step="0.01" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="location" class="sr-only">Location</label>
+        <input type="text" id="location" placeholder="Location (e.g., East Legon, Accra)" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="property_type">Property Type</label>
+        <select id="property_type" required>
+          <option value="" disabled selected>Select property type</option>
+          <option value="hostel">Hostel</option>
+          <option value="room">Room</option>
+          <option value="house">House</option>
+          <option value="land">Land</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label class="file-input-label" for="image">
+          <span id="file-label-text">Click to upload property image</span>
+        </label>
+        <input type="file" id="image" accept="image/*">
+        <div class="preview-container" id="preview-container">
+          <img class="preview-image" id="preview-image" src="#" alt="Preview">
+        </div>
+      </div>
+      
+      <button type="submit">Submit Property</button>
     </form>
   </div>
 
   <script>
-    const token = localStorage.getItem("access");
-
-    document.getElementById("property-form").addEventListener("submit", function (e) {
-      e.preventDefault();
-      const formData = new FormData();
-      formData.append("title", document.getElementById("title").value);
-      formData.append("description", document.getElementById("description").value);
-      formData.append("price", document.getElementById("price").value);
-      formData.append("location", document.getElementById("location").value);
-      formData.append("property_type", document.getElementById("property_type").value);
-      formData.append("is_available", "true");
-
-      const imageInput = document.getElementById("image");
-      if (imageInput.files.length > 0) {
-        formData.append("image", imageInput.files[0]);
+    document.addEventListener('DOMContentLoaded', function() {
+      const token = localStorage.getItem("access");
+      if (!token) {
+        alert("Please login to upload a property");
+        window.location.href = "login.html";
+        return;
       }
 
-      fetch("http://localhost:8000/api/properties/", {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer " + token
-        },
-        body: formData
-      })
-      .then(res => {
-        if (res.ok) {
-          alert("Property uploaded with image!");
-          window.location.href = "dashboard.html";
-        } else {
-          alert("Upload failed. Check login or file size.");
+      // Image preview functionality
+      const imageInput = document.getElementById('image');
+      const previewContainer = document.getElementById('preview-container');
+      const previewImage = document.getElementById('preview-image');
+      const fileLabelText = document.getElementById('file-label-text');
+      
+      imageInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+          const reader = new FileReader();
+          
+          reader.onload = function(e) {
+            previewImage.src = e.target.result;
+            previewContainer.style.display = 'block';
+            fileLabelText.textContent = file.name;
+          }
+          
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // Form submission
+      document.getElementById("property-form").addEventListener("submit", async function(e) {
+        e.preventDefault();
+        
+        const title = document.getElementById("title").value.trim();
+        const description = document.getElementById("description").value.trim();
+        const price = document.getElementById("price").value;
+        const location = document.getElementById("location").value.trim();
+        const propertyType = document.getElementById("property_type").value;
+        
+        // Basic validation
+        if (!title || !description || !price || !location || !propertyType) {
+          alert("Please fill in all required fields");
+          return;
+        }
+        
+        if (price <= 0) {
+          alert("Price must be greater than 0");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("title", title);
+        formData.append("description", description);
+        formData.append("price", price);
+        formData.append("location", location);
+        formData.append("property_type", propertyType);
+        formData.append("is_available", "true");
+
+        if (imageInput.files.length > 0) {
+          formData.append("image", imageInput.files[0]);
+        }
+
+        try {
+          const response = await fetch("http://localhost:8000/api/properties/", {
+            method: "POST",
+            headers: {
+              "Authorization": "Bearer " + token
+            },
+            body: formData
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            alert("Property uploaded successfully!");
+            window.location.href = "dashboard.html";
+          } else {
+            const errorData = await response.json();
+            console.error("Upload failed:", errorData);
+            alert(`Upload failed: ${errorData.detail || 'Please check your input and try again'}`);
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          alert("An error occurred. Please try again later.");
         }
       });
     });
   </script>
 </body>
 </html>
+{% endblock %}

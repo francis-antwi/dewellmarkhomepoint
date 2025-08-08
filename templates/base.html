@@ -184,9 +184,9 @@ ul.site-links li a:hover{color:#fd5573!important}
     align-items: center;
     gap: 12px;
     padding: 12px 16px;
-    text-decoration: chocolate;
-    transition: all 0.3s ease;
+    text-decoration: none;
     color: deepskyblue !important;
+    transition: all 0.3s ease;
 }
 
 .dropdown-content a:hover {
@@ -221,8 +221,16 @@ ul.site-links li a:hover{color:#fd5573!important}
 			</div>
 </div>
 
-				<div class="col-lg-6 col-sm-6 col-xs-6 col-md-6"> 
-    <ul class="main-nav navbar-right menu-ul">
+<div class="col-lg-6 col-sm-6 col-xs-6 col-md-6">
+    <!-- Mobile Toggle Button -->
+    <div class="mobile-toggle d-lg-none d-md-none">
+        <button id="mobileMenuToggle" aria-label="Toggle navigation">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <!-- Navigation Menu -->
+    <ul class="main-nav navbar-right menu-ul" id="mobileNavMenu">
         {% if user.is_authenticated %}
             {% if user.role == 'owner' %}
                 <li class="menu-text menu-text-bd">
@@ -238,12 +246,12 @@ ul.site-links li a:hover{color:#fd5573!important}
                         <i class="fas fa-chevron-down" aria-hidden="true"></i>
                     </button>
                     <div class="dropdown-content">
-                        <a href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt" aria-hidden="true"></i> Dashboard</a>
+                        <a href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
                         {% if user.role == 'owner' %}
-                            <a href="{% url 'my_properties' %}"><i class="fas fa-home" aria-hidden="true"></i> My Properties</a>
+                            <a href="{% url 'my_properties' %}"><i class="fas fa-home"></i> My Properties</a>
                         {% endif %}
-                        <a href="{% url 'my_bookings' %}"><i class="fas fa-calendar-check" aria-hidden="true"></i> My Bookings</a>
-                        <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> Logout</a>
+                        <a href="{% url 'my_bookings' %}"><i class="fas fa-calendar-check"></i> My Bookings</a>
+                        <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
                     </div>
                 </div>
             </li>
@@ -257,6 +265,49 @@ ul.site-links li a:hover{color:#fd5573!important}
         {% endif %}
     </ul>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggleBtn = document.getElementById('mobileMenuToggle');
+        const navMenu = document.getElementById('mobileNavMenu');
+
+        toggleBtn.addEventListener('click', function () {
+            navMenu.classList.toggle('menu-visible');
+        });
+    });
+</script>
+<style>/* Hide nav menu on small screens */
+@media (max-width: 768px) {
+    .main-nav {
+        display: none;
+        flex-direction: column;
+        background: white;
+        padding: 10px;
+        position: absolute;
+        top: 60px;
+        right: 10px;
+        width: 200px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        z-index: 999;
+    }
+
+    .menu-visible {
+        display: flex !important;
+    }
+
+    .mobile-toggle {
+        display: block;
+        font-size: 24px;
+        background: none;
+        border: none;
+        color: #333;
+    }
+}
+
+/* By default, hide toggle button on larger screens */
+.mobile-toggle {
+    display: none;
+}
+</style>
 
 			</div>
 		</div>
@@ -266,3 +317,421 @@ ul.site-links li a:hover{color:#fd5573!important}
 	<div class="container">
 		<a class="navbar-brand" href="" id="header-logo" style="visibility:hidden"><img src="{% static 'img/logo.png' %}"style="height:41px" alt="Dwellmark Homepoint - Find the best accommodation in Ghana with Dwellmark Homepoint - hostels, rooms and apartments near you"></a>
 		
+{% load static %}
+
+{% block content %}
+<div class="property-listing-container">
+    <!-- Category Filter Navigation -->
+    <div class="category-filter-nav">
+        <a href="?property_type=" class="filter-btn {% if not current_filter %}active{% endif %}">
+            All Properties
+        </a>
+
+        {% if not request.user.is_authenticated or not request.user.is_student %}
+            <!-- Full navigation for non-students -->
+            <a href="?property_type=rentals" class="filter-btn {% if current_filter == 'rentals' %}active{% endif %}">
+                Rentals
+            </a>
+            <a href="?property_type=sales" class="filter-btn {% if current_filter == 'sales' %}active{% endif %}">
+                For Sale
+            </a>
+            
+            {% for type in category_groups.rentals %}
+                <a href="?property_type={{ type }}" class="filter-btn {% if current_filter == type %}active{% endif %}">
+                    {{ type|title }}s
+                </a>
+            {% endfor %}
+            
+            {% for type in category_groups.sales %}
+                <a href="?property_type={{ type }}" class="filter-btn {% if current_filter == type %}active{% endif %}">
+                    {{ type|title }}
+                </a>
+            {% endfor %}
+        {% else %}
+            <!-- Limited navigation for students -->
+            {% for type in category_groups.rentals %}
+                {% if type == 'hostel' or type == 'room' %}
+                    <a href="?property_type={{ type }}" class="filter-btn {% if current_filter == type %}active{% endif %}">
+                        {{ type|title }}s
+                    </a>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <h2>{{ display_title }}</h2>
+        <p class="property-count">{{ properties|length }} property{{ properties|length|pluralize }} available</p>
+    </div>
+</div>
+
+<style>
+    .category-filter-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 30px;
+        justify-content: center;
+    }
+    
+    .filter-btn {
+        padding: 8px 16px;
+        border-radius: 20px;
+        background: #f5f5f5;
+        color: #333;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: 1px solid #ddd;
+        font-size: 14px;
+    }
+    
+    .filter-btn:hover {
+        background: #e0e0e0;
+    }
+    
+    .filter-btn.active {
+        background: #3498db;
+        color: white;
+        border-color: #3498db;
+    }
+
+    .property-listing-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .page-header {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .page-header h2 {
+        font-size: 2rem;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .property-count {
+        color: #7f8c8d;
+        font-size: 1rem;
+    }
+
+    .properties-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .property-card {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .property-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .property-image {
+        height: 200px;
+        overflow: hidden;
+    }
+
+    .property-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .property-card:hover .property-image img {
+        transform: scale(1.05);
+    }
+
+    .property-details {
+        padding: 1.5rem;
+    }
+
+    .property-title {
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+        color: #2c3e50;
+    }
+
+    .property-location {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #7f8c8d;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .property-price {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: #e74c3c;
+        margin-bottom: 0.5rem;
+    }
+
+    .property-meta {
+        display: flex;
+        justify-content: space-between;
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        border-top: 1px solid #eee;
+        padding-top: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .no-properties {
+        text-align: center;
+        padding: 3rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        grid-column: 1 / -1;
+    }
+
+    .no-properties p {
+        color: #7f8c8d;
+        margin-bottom: 1rem;
+    }
+
+    .explore-link {
+        display: inline-block;
+        background: #3498db;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        text-decoration: none;
+        transition: background 0.3s ease;
+    }
+
+    .explore-link:hover {
+        background: #2980b9;
+    }
+
+    .property-type-badge {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        background: rgba(0,0,0,0.7);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        z-index: 1;
+    }
+
+    .property-image-container {
+        position: relative;
+    }
+
+    @media (max-width: 768px) {
+        .properties-grid {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .properties-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+{% endblock %}
+</nav><div style="display: none; width: 1325px; height: 60px; float: none;">
+    
+</div>
+
+<style>ul.partners-list li a img{width:20%}.void{display:inline-block}.void a{width:180.5625px!important;height:53.5px!important;background-size:cover!important}</style>
+<style>
+    /* Base Styles */
+    .hero {
+        height: 305px;
+        padding: 10px 0;
+        position: relative;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .hero .container {
+        width: 100%;
+        z-index: 2;
+    }
+    
+    .hero-form {
+        background: rgba(255,255,255,0.9);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .search-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: flex-end;
+    }
+    
+    .search-group {
+        flex: 1;
+        min-width: 150px;
+    }
+    
+    .search-input, .select-control {
+        width: 100%;
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    .input-group {
+        display: flex;
+        align-items: center;
+    }
+    
+    .input-group-addon {
+        padding: 10px;
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        border-right: none;
+        border-radius: 4px 0 0 4px;
+    }
+    
+    .search-input2 {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-left: none;
+        border-radius: 0 4px 4px 0;
+        flex: 1;
+    }
+    
+    .btn-search {
+        background: #e83e8c;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s;
+        width: 100%;
+    }
+    
+    .btn-search:hover {
+        background: #d62a7a;
+        transform: translateY(-2px);
+    }
+    
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .search-row {
+            flex-direction: column;
+        }
+        
+        .search-group {
+            width: 100%;
+        }
+        
+        .hero {
+            height: auto;
+            padding: 20px 0;
+        }
+    }
+</style>
+
+<header class="hero" id="hero">
+    <div class="container">
+        <div class="hero-form">
+            <form role="form" id="mQreloader" method="get" action="">
+                <input type="hidden" name="contract" value="rent">
+                
+                <div class="search-row">
+                    <!-- Property Type -->
+                    <div class="search-group">
+                        <select name="property_type" class="select-control">
+                            <option value="">Any Property Type</option>
+                            <option value="land">Land</option>
+                            <option value="house">House</option>
+                            <option value="hostel">Hostel</option>
+                            <option value="room">Room</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Location -->
+                    <div class="search-group">
+                        <input type="text" name="location" class="search-input" placeholder="Enter Location">
+                    </div>
+                    
+                    <!-- Min Price -->
+                    <div class="search-group">
+                        <div class="input-group">
+                            <span class="input-group-addon">GH₵</span>
+                            <input type="number" name="min_price" class="search-input2" placeholder="Min Price">
+                        </div>
+                    </div>
+                    
+                    <!-- Max Price -->
+                    <div class="search-group">
+                        <div class="input-group">
+                            <span class="input-group-addon">GH₵</span>
+                            <input type="number" name="max_price" class="search-input2" placeholder="Max Price">
+                        </div>
+                    </div>
+                    
+                    <!-- Search Button -->
+                    <div class="search-group" style="flex: 0 0 auto;">
+                        <button class="btn btn-search" type="submit" title="Search">
+                            <i class="fa fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</header>
+                
+    <!-- Property Grid -->
+    {% if properties %}
+    <div class="properties-grid">
+        {% for property in properties %}
+        <a href="{% url 'property_detail' property.id %}" class="property-card">
+            <div class="property-image-container">
+                <div class="property-type-badge">{{ property.get_property_type_display }}</div>
+                <div class="property-image">
+                    <img src="{% if property.images.first %}{{ property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" 
+                         alt="{{ property.title }}">
+                </div>
+            </div>
+            <div class="property-details">
+                <h3 class="property-title">{{ property.title }}</h3>
+                <div class="property-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    {{ property.location|truncatechars:30 }}
+                </div>
+                <div class="property-price">GH₵ {{ property.price|floatformat:2 }}</div>
+                <div class="property-meta">
+                    <span><i class="fas fa-bed"></i> {{ property.bedrooms }} bed{{ property.bedrooms|pluralize }}</span>
+                    <span><i class="fas fa-bath"></i> {{ property.bathrooms }} bath{{ property.bathrooms|pluralize }}</span>
+                    <span><i class="fas fa-ruler-combined"></i> {{ property.area }} sqm</span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-properties">
+        <p>No properties found in this category.</p>
+        <a href="?property_type=" class="explore-link">View All Properties</a>
+    </div>
+    {% endif %}
+</div>

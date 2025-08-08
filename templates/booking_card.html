@@ -1,3 +1,7 @@
+{% extends 'index.html' %}
+{% block title %}Home | Dwellmark Homepoint{% endblock %}
+
+{% block content %}
 {% comment %} 
 Reusable booking card partial 
 Required context: booking, type = 'current' | 'past' | 'cancelled' 
@@ -5,72 +9,114 @@ Required context: booking, type = 'current' | 'past' | 'cancelled'
 
 {% load static %}
 
-<div class="booking-card">
-    <div class="booking-image">
-        <img src="{% if booking.booked_property.images.first %}{{ booking.booked_property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" alt="{{ booking.booked_property.title }}">
+<div class="booking-card bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg">
+    <div class="booking-image h-48 overflow-hidden">
+        <img src="{% if booking.booked_property.images.first %}{{ booking.booked_property.images.first.image.url }}{% else %}{% static 'images/default-property.jpg' %}{% endif %}" 
+             alt="{{ booking.booked_property.title }}"
+             class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
     </div>
 
-    <div class="booking-details">
-        <h3><a href="{% url 'property_detail' booking.booked_property.id %}">{{ booking.booked_property.title }}</a></h3>
-        <p class="location"><i class="fas fa-map-marker-alt"></i> {{ booking.booked_property.location }}</p>
+    <div class="booking-details p-5">
+        <h3 class="text-xl font-bold mb-1 hover:text-blue-600 transition-colors">
+            <a href="{% url 'property_detail' booking.booked_property.id %}">{{ booking.booked_property.title }}</a>
+        </h3>
+        <p class="location text-gray-600 mb-4 flex items-center">
+            <i class="fas fa-map-marker-alt mr-2 text-blue-500"></i> 
+            {{ booking.booked_property.location }}
+        </p>
 
-        <div class="booking-dates">
-            <div class="date-group">
-                <span>Check-in</span>
-                <p>{{ booking.start_date|date:"M d, Y" }}</p>
+        <div class="booking-dates grid grid-cols-3 gap-4 mb-4">
+            <div class="date-group bg-gray-50 p-3 rounded-lg">
+                <span class="text-sm text-gray-500 font-medium">Check-in</span>
+                <p class="font-semibold">{{ booking.start_date|date:"M d, Y" }}</p>
             </div>
-            <div class="date-group">
-                <span>Check-out</span>
-                <p>{{ booking.end_date|date:"M d, Y" }}</p>
+            <div class="date-group bg-gray-50 p-3 rounded-lg">
+                <span class="text-sm text-gray-500 font-medium">Check-out</span>
+                <p class="font-semibold">{{ booking.end_date|date:"M d, Y" }}</p>
             </div>
-            <div class="date-group">
-                <span>Total</span>
-                <p class="price">GH₵ {{ booking.total_price }}</p>
+            <div class="date-group bg-gray-50 p-3 rounded-lg">
+                <span class="text-sm text-gray-500 font-medium">Total</span>
+                <p class="price font-bold text-blue-600">GH₵ {{ booking.total_price }}</p>
             </div>
         </div>
 
         {% if request.user == booking.booked_property.owner %}
-        <div class="tenant-info">
-            <p><strong>Tenant:</strong> {{ booking.tenant.get_full_name }}</p>
-            <p><strong>Email:</strong> {{ booking.tenant.email }}</p>
+        <div class="tenant-info bg-blue-50 p-3 rounded-lg mb-4">
+            <p class="mb-1"><strong class="text-blue-700">Tenant:</strong> {{ booking.tenant.get_full_name }}</p>
+            <p class="mb-1"><strong class="text-blue-700">Email:</strong> {{ booking.tenant.email }}</p>
             {% if booking.tenant.phone_number %}
-            <p><strong>Phone:</strong> {{ booking.tenant.phone_number }}</p>
+            <p><strong class="text-blue-700">Phone:</strong> {{ booking.tenant.phone_number }}</p>
             {% endif %}
         </div>
         {% endif %}
 
         {% if type == 'current' %}
-        <div class="booking-status">
-            <span class="status-badge {{ booking.status }}">{{ booking.get_status_display }}</span>
+        <div class="booking-status flex items-center justify-between">
+            <span class="status-badge px-3 py-1 rounded-full text-sm font-medium 
+                {% if booking.status == 'confirmed' %}bg-green-100 text-green-800
+                {% elif booking.status == 'pending' %}bg-yellow-100 text-yellow-800
+                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ booking.get_status_display }}
+            </span>
 
             {% if booking.status == 'pending' and request.user == booking.booked_property.owner %}
-                <div class="owner-actions">
-                    <a href="{% url 'confirm_booking' booking.id %}" class="btn btn-success">Confirm</a>
-                    <a href="#" class="btn btn-danger cancel-booking" data-booking-id="{{ booking.id }}">Cancel</a>
+                <div class="owner-actions space-x-2">
+                    <a href="{% url 'confirm_booking' booking.id %}" class="btn-confirm px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+                        Confirm
+                    </a>
+                    <a href="#" class="btn-cancel px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors cancel-booking" data-booking-id="{{ booking.id }}">
+                        Cancel
+                    </a>
                 </div>
             {% elif booking.status == 'confirmed' and request.user == booking.tenant %}
-                <a href="#" class="cancel-booking" data-booking-id="{{ booking.id }}">Cancel Booking</a>
+                <a href="#" class="cancel-booking text-red-600 hover:text-red-800 text-sm font-medium transition-colors" data-booking-id="{{ booking.id }}">
+                    Cancel Booking
+                </a>
             {% endif %}
         </div>
 
         {% elif type == 'past' %}
-        <div class="booking-actions">
+        <div class="booking-actions flex justify-between">
             {% if not booking.review %}
-            <a href="{% url 'add_review' booking.booked_property.id %}" class="review-btn">Leave a Review</a>
+            <a href="{% url 'add_review' booking.booked_property.id %}" class="review-btn px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                Leave a Review
+            </a>
             {% endif %}
-            <a href="{% url 'property_detail' booking.booked_property.id %}" class="rebook-btn">Book Again</a>
+            <a href="{% url 'property_detail' booking.booked_property.id %}" class="rebook-btn px-4 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
+                Book Again
+            </a>
         </div>
 
         {% elif type == 'cancelled' %}
-        <div class="booking-dates">
+        <div class="booking-dates mb-4">
             <div class="date-group">
-                <span>Status</span>
-                <p class="status-badge cancelled">Cancelled</p>
+                <span class="text-sm text-gray-500 font-medium">Status</span>
+                <p class="status-badge px-3 py-1 bg-red-100 text-red-800 rounded-full inline-block">
+                    Cancelled
+                </p>
             </div>
         </div>
         <div class="booking-actions">
-            <a href="{% url 'property_detail' booking.booked_property.id %}" class="rebook-btn">Book Again</a>
+            <a href="{% url 'property_detail' booking.booked_property.id %}" class="rebook-btn w-full block text-center px-4 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
+                Book Again
+            </a>
         </div>
         {% endif %}
     </div>
 </div>
+
+<style>
+    .booking-card {
+        transition: all 0.3s ease;
+    }
+    
+    .booking-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .btn-confirm:hover, .btn-cancel:hover, .review-btn:hover, .rebook-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
